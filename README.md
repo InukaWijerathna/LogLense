@@ -5,7 +5,7 @@
   ![Banner](https://img.shields.io/badge/LogLense-CLI_Log_Parser-0ea5e9?style=for-the-badge&logo=gnubash&logoColor=white)
 
   ![Python](https://img.shields.io/badge/python-3.8%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)
-  ![License](https://img.shields.io/badge/license-MIT-22c55e?style=for-the-badge)
+  ![License](https://img.shields.io/badge/license-Apache%202.0-22c55e?style=for-the-badge)
   ![Version](https://img.shields.io/badge/version-0.5.0-8b5cf6?style=for-the-badge)
 
 </div>
@@ -196,4 +196,4 @@ pytest
 
 ## 📄 License
 
-MIT
+Apache 2.0 — see [LICENSE](LICENSE) for details.
