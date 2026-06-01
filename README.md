@@ -5,7 +5,7 @@ Like `grep` + `tail -f` — but with structured output, time filters, and a clea
 
 ![Python](https://img.shields.io/badge/python-3.8%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
-![Version](https://img.shields.io/badge/version-0.4.0-informational)
+![Version](https://img.shields.io/badge/version-0.5.0-informational)
 
 ---
 
@@ -49,8 +49,8 @@ pip install -e .
 # Parse and display all entries
 loglens parse sample_logs/app.log
 
-# Filter by log level
-loglens parse sample_logs/app.log --level ERROR
+# Parse multiple files at once
+loglens parse app.log worker.log nginx.log --level ERROR
 
 # Search with a regex or keyword
 loglens parse sample_logs/app.log --pattern "timeout" --highlight
@@ -58,14 +58,16 @@ loglens parse sample_logs/app.log --pattern "timeout" --highlight
 # Filter by time window
 loglens parse sample_logs/app.log --since "2024-01-15 08:10" --until "2024-01-15 09:00"
 
-# Export filtered results to CSV
+# Export to CSV or JSON
 loglens parse sample_logs/app.log --level ERROR --export errors.csv
+loglens parse sample_logs/app.log --level ERROR --export errors.json
 
 # Live tail — stream new lines as they arrive
 loglens watch app.log --level ERROR
 
-# Summary stats
+# Summary stats (one or more files)
 loglens stats sample_logs/app.log
+loglens stats app.log worker.log
 ```
 
 ---
@@ -74,14 +76,16 @@ loglens stats sample_logs/app.log
 
 ### `parse` — filter and display
 
+Accepts one or more files. When multiple files are given, a **File** column is added to the output so you always know which file each entry came from.
+
 ```
-loglens parse LOGFILE [OPTIONS]
+loglens parse LOGFILE [LOGFILE ...] [OPTIONS]
 
   -l, --level TEXT      Filter by level: DEBUG | INFO | WARN | ERROR | FATAL
   -p, --pattern TEXT    Regex or keyword search (matches full raw line)
       --since TEXT      Include entries from this time  e.g. "2024-01-15 08:00"
       --until TEXT      Include entries up to this time e.g. "2024-01-15 12:00"
-  -e, --export FILE     Save results to .txt or .csv
+  -e, --export FILE     Save results to .txt, .csv, or .json
   -H, --highlight       Highlight pattern matches inline
 ```
 
@@ -102,6 +106,7 @@ loglens watch LOGFILE [OPTIONS]
 
 ```
 loglens stats sample_logs/app.log
+loglens stats app.log worker.log nginx.log   # aggregate across files
 
 LogLens Stats — app.log
 ────────────────────────────────────────────────────────────
@@ -144,8 +149,11 @@ Level aliases are normalized automatically: `WARNING` → `WARN`, `CRITICAL` →
 ## Export
 
 ```bash
-# CSV — timestamp, level, source, message columns
+# CSV — timestamp, level, source, message, file columns
 loglens parse app.log --level ERROR --export errors.csv
+
+# JSON — structured array, one object per entry
+loglens parse app.log --level ERROR --export errors.json
 
 # Plain text — original raw lines
 loglens parse app.log --pattern "timeout" --export timeouts.txt
@@ -170,7 +178,7 @@ pytest
 - [x] v0.2 — `--since`/`--until` time filters + `stats` command
 - [x] v0.3 — `watch` live tail mode
 - [x] v0.4 — `--export` CSV/TXT + pip installable
-- [ ] v0.5 — Multi-file parsing + JSON output format
+- [x] v0.5 — Multi-file parsing + JSON export
 - [ ] v0.6 — Saved filter presets
 
 ---

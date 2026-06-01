@@ -5,7 +5,7 @@ import sys
 from collections import Counter
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional
 
 # Ensure UTF-8 output on Windows (CP1252 terminals can't render Rich's box chars)
 if hasattr(sys.stdout, "reconfigure"):
@@ -15,10 +15,13 @@ if hasattr(sys.stdout, "reconfigure"):
         pass
 
 import typer
+from rich.align import Align
 from rich.console import Console
+from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
+from . import __version__
 from .exporter import export
 from .filters import apply_filters, filter_level, filter_pattern
 from .parser import LogEntry, parse_file, parse_line
@@ -30,6 +33,19 @@ app = typer.Typer(
     add_completion=False,
 )
 console = Console(legacy_windows=False)
+
+
+def _print_banner() -> None:
+    label = Text.assemble(
+        ("Log", "bold cyan"),
+        ("Lens", "bold white"),
+        ("  ", ""),
+        (f"v{__version__}", "dim"),
+        ("   ", ""),
+        ("smart log parser · filter · watcher", "dim italic"),
+    )
+    console.print(Panel(Align.center(label), border_style="cyan", padding=(0, 2)))
+    console.print()
 
 LEVEL_STYLES: dict[str, str] = {
     "DEBUG": "dim cyan",
@@ -88,18 +104,38 @@ def _display_entries(entries: list[LogEntry], regex: Optional[re.Pattern] = None
         console.print("[dim]No matching log entries found.[/dim]")
         return
 
+    multi_file = len({e.filepath for e in entries if e.filepath}) > 1
+
     table = Table(show_header=True, header_style="bold magenta", expand=True, box=None)
     table.add_column("Timestamp", style="dim", min_width=19, no_wrap=True)
     table.add_column("Level", min_width=7, no_wrap=True)
+    if multi_file:
+        table.add_column("File", style="magenta", min_width=10, max_width=18, no_wrap=True)
     table.add_column("Source", style="cyan", min_width=12, max_width=20, no_wrap=True)
     table.add_column("Message")
 
     for e in entries:
         ts = e.timestamp.strftime("%Y-%m-%d %H:%M:%S") if e.timestamp else "-"
-        table.add_row(ts, _level_text(e.level), e.source or "-", _highlight(e.message, regex))
+        row: list = [ts, _level_text(e.level)]
+        if multi_file:
+            row.append(Path(e.filepath).name if e.filepath else "-")
+        row += [e.source or "-", _highlight(e.message, regex)]
+        table.add_row(*row)
 
     console.print(table)
     console.print(f"\n[dim]{len(entries)} entr{'y' if len(entries) == 1 else 'ies'} matched[/dim]")
+
+
+# ---------------------------------------------------------------------------
+# Banner callback — runs before every subcommand
+# ---------------------------------------------------------------------------
+
+@app.callback(invoke_without_command=True)
+def _callback(ctx: typer.Context) -> None:
+    _print_banner()
+    if ctx.invoked_subcommand is None:
+        console.print(ctx.get_help())
+        raise typer.Exit()
 
 
 # ---------------------------------------------------------------------------
@@ -108,26 +144,29 @@ def _display_entries(entries: list[LogEntry], regex: Optional[re.Pattern] = None
 
 @app.command()
 def parse(
-    logfile: Path = typer.Argument(..., help="Path to log file", exists=True, readable=True),
+    logfiles: List[Path] = typer.Argument(..., help="One or more log files to parse"),
     level: Optional[str] = typer.Option(None, "--level", "-l", help="Filter by level: DEBUG, INFO, WARN, ERROR, FATAL"),
     pattern: Optional[str] = typer.Option(None, "--pattern", "-p", help="Regex or keyword search"),
     since: Optional[str] = typer.Option(None, "--since", help='Include entries from this time, e.g. "2024-01-01 08:00"'),
     until: Optional[str] = typer.Option(None, "--until", help='Include entries up to this time, e.g. "2024-01-01 12:00"'),
-    export_path: Optional[Path] = typer.Option(None, "--export", "-e", metavar="FILE", help="Save results to .txt or .csv"),
+    export_path: Optional[Path] = typer.Option(None, "--export", "-e", metavar="FILE", help="Save results to .txt, .csv, or .json"),
     highlight: bool = typer.Option(False, "--highlight", "-H", help="Highlight pattern matches in output"),
 ) -> None:
-    """Parse and filter a log file with optional level, pattern, and time filters."""
+    """Parse and filter one or more log files."""
+    for lf in logfiles:
+        if not lf.exists():
+            console.print(f"[red]File not found:[/red] {lf}")
+            raise typer.Exit(1)
+
     since_dt = _parse_dt(since)
     until_dt = _parse_dt(until)
     regex = _build_regex(pattern) if highlight else None
 
-    entries = apply_filters(
-        list(parse_file(str(logfile))),
-        level=level,
-        pattern=pattern,
-        since=since_dt,
-        until=until_dt,
-    )
+    all_entries: list[LogEntry] = []
+    for lf in logfiles:
+        all_entries.extend(parse_file(str(lf)))
+
+    entries = apply_filters(all_entries, level=level, pattern=pattern, since=since_dt, until=until_dt)
 
     _display_entries(entries, regex=regex)
 
@@ -180,19 +219,27 @@ def watch(
 
 @app.command()
 def stats(
-    logfile: Path = typer.Argument(..., help="Path to log file", exists=True, readable=True),
+    logfiles: List[Path] = typer.Argument(..., help="One or more log files to summarize"),
     pattern: Optional[str] = typer.Option(None, "--pattern", "-p", help="Scope stats to entries matching this pattern"),
 ) -> None:
     """Show a summary of log levels, time range, and top message patterns."""
-    entries = list(parse_file(str(logfile)))
-    if pattern:
-        entries = filter_pattern(entries, pattern)
+    for lf in logfiles:
+        if not lf.exists():
+            console.print(f"[red]File not found:[/red] {lf}")
+            raise typer.Exit(1)
+
+    all_entries: list[LogEntry] = []
+    for lf in logfiles:
+        all_entries.extend(parse_file(str(lf)))
+
+    entries = filter_pattern(all_entries, pattern) if pattern else all_entries
 
     total = len(entries)
     timestamps = [e.timestamp for e in entries if e.timestamp]
     level_counts: Counter[str] = Counter(e.level or "UNKNOWN" for e in entries)
 
-    console.print(f"\n[bold magenta]LogLens Stats — {logfile.name}[/bold magenta]")
+    label = ", ".join(lf.name for lf in logfiles)
+    console.print(f"\n[bold magenta]LogLens Stats — {label}[/bold magenta]")
     console.rule()
     console.print(f"  [dim]Total entries  [/dim] [bold]{total}[/bold]")
     if timestamps:

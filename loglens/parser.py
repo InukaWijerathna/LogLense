@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Iterator, Optional
 import re
@@ -10,6 +10,7 @@ class LogEntry:
     source: Optional[str]
     message: str
     raw: str
+    filepath: Optional[str] = field(default=None, compare=False)
 
 # Ordered from most specific to most generic
 _PATTERNS = [
@@ -102,4 +103,6 @@ def parse_file(path: str) -> Iterator[LogEntry]:
         for line in fh:
             line = line.rstrip("\n")
             if line.strip():
-                yield parse_line(line)
+                entry = parse_line(line)
+                entry.filepath = path
+                yield entry
