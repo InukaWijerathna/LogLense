@@ -1,8 +1,8 @@
 <div align="center">
 
-  # LogLens
+  # LogLense
 
-  ![Banner](https://img.shields.io/badge/LogLens-CLI_Log_Parser-0ea5e9?style=for-the-badge&logo=gnubash&logoColor=white)
+  ![Banner](https://img.shields.io/badge/LogLense-CLI_Log_Parser-0ea5e9?style=for-the-badge&logo=gnubash&logoColor=white)
 
   ![Python](https://img.shields.io/badge/python-3.8%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)
   ![License](https://img.shields.io/badge/license-MIT-22c55e?style=for-the-badge)
@@ -10,7 +10,7 @@
 
 </div>
 
-**LogLens** is a smart CLI log parser, filter, and watcher for developers. Like `grep` + `tail -f` — but with structured output, color-coded levels, time filters, and a clean rich UI. Zero config, ships with sample logs.
+**LogLense** is a smart CLI log parser, filter, and watcher for developers. Like `grep` + `tail -f` — but with structured output, color-coded levels, time filters, and a clean rich UI. Zero config, ships with sample logs.
 
 ---
 
@@ -38,8 +38,8 @@ pip install loglens
 Or clone and run immediately with the bundled sample log:
 
 ```bash
-git clone https://github.com/InukaWijerathna/LogLense.git
-cd LogLense
+git clone https://github.com/InukaWijerathna/LogLensee.git
+cd LogLensee
 pip install -e .
 
 loglens parse sample_logs/app.log
@@ -113,7 +113,7 @@ loglens stats LOGFILE [LOGFILE ...] [OPTIONS]
 ```
 
 ```
-LogLens Stats — app.log
+LogLense Stats — app.log
 ────────────────────────────────────────────────────
   Total entries    82
   First entry      2024-01-15 08:00:01
@@ -175,8 +175,8 @@ loglens parse app.log --pattern "timeout" --export timeouts.txt
 ## 🚀 Dev Setup
 
 ```bash
-git clone https://github.com/InukaWijerathna/LogLense.git
-cd LogLense
+git clone https://github.com/InukaWijerathna/LogLensee.git
+cd LogLensee
 pip install -e ".[dev]"
 pytest
 ```

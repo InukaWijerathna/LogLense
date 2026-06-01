@@ -15,9 +15,7 @@ if hasattr(sys.stdout, "reconfigure"):
         pass
 
 import typer
-from rich.align import Align
 from rich.console import Console
-from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
@@ -28,24 +26,41 @@ from .parser import LogEntry, parse_file, parse_line
 
 app = typer.Typer(
     name="loglens",
-    help="[bold cyan]LogLens[/bold cyan] — smart CLI log parser, filter, and watcher.",
+    help="[bold cyan]LogLense[/bold cyan] — smart CLI log parser, filter, and watcher.",
     rich_markup_mode="rich",
     add_completion=False,
 )
 console = Console(legacy_windows=False)
 
 
+# "LOG" = cyan, "LENSE" = white. Split at col 26 — consistent across all 6 lines.
+_ASCII_ART = [
+    "██╗      ██████╗  ██████╗ ██╗     ███████╗███╗   ██╗███████╗███████╗",
+    "██║     ██╔═══██╗██╔════╝ ██║     ██╔════╝████╗  ██║██╔════╝██╔════╝",
+    "██║     ██║   ██║██║  ███╗██║     █████╗  ██╔██╗ ██║███████╗█████╗  ",
+    "██║     ██║   ██║██║   ██║██║     ██╔══╝  ██║╚██╗██║╚════██║██╔══╝  ",
+    "███████╗╚██████╔╝╚██████╔╝███████╗███████╗██║ ╚████║███████║███████╗",
+    "╚══════╝ ╚═════╝  ╚═════╝ ╚══════╝╚══════╝╚═╝  ╚═══╝╚══════╝╚══════╝",
+]
+_SPLIT = 26
+
 def _print_banner() -> None:
-    label = Text.assemble(
-        ("Log", "bold cyan"),
-        ("Lens", "bold white"),
-        ("  ", ""),
-        (f"v{__version__}", "dim"),
-        ("   ", ""),
-        ("smart log parser · filter · watcher", "dim italic"),
+    art = Text()
+    for line in _ASCII_ART:
+        art.append(line[:_SPLIT], style="bold cyan")
+        art.append(line[_SPLIT:] + "\n", style="bold white")
+
+    tagline = Text.assemble(
+        ("  smart log parser", "dim"),
+        ("  ·  ", "dim"),
+        ("filter", "dim"),
+        ("  ·  ", "dim"),
+        ("watcher", "dim"),
+        (f"   v{__version__}", "cyan dim"),
+        ("\n", ""),
     )
-    console.print(Panel(Align.center(label), border_style="cyan", padding=(0, 2)))
-    console.print()
+    console.print(art)
+    console.print(tagline)
 
 LEVEL_STYLES: dict[str, str] = {
     "DEBUG": "dim cyan",
