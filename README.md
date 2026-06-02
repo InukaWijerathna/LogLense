@@ -1,3 +1,4 @@
+
 <div align="center">
 
   # LogLense
@@ -10,24 +11,37 @@
 
 </div>
 
-**LogLense** is a smart CLI log parser, filter, and watcher for developers. Like `grep` + `tail -f` — but with structured output, color-coded levels, time filters, and a clean rich UI. Zero config, ships with sample logs.
+LogLense is a small, fast CLI tool to parse, filter, and watch log files with structured, colorized output.
 
----
+Key goals:
 
-## ✨ Features
+- Fast, zero-config parsing of common log formats
+- Human-friendly terminal output with level coloring and columns
+- Small, composable commands for searching, tailing, and exporting
 
-- **Level Filtering** — Filter by `DEBUG`, `INFO`, `WARN`, `ERROR`, or `FATAL` with color-coded output
-- **Pattern Search** — Regex or keyword search across the full raw log line, with optional inline highlighting
-- **Time Range** — Slice any log file by `--since` and `--until` timestamps
-- **Multi-file** — Parse and aggregate multiple log files at once; a File column appears automatically
-- **Live Tail** — Stream new entries in real time as they're written, with level and pattern filters applied
-- **Stats Summary** — Level breakdown bar chart, time range, and top message patterns at a glance
-- **Export** — Save filtered results to `.csv`, `.json`, or `.txt`
-- **Auto Format Detection** — Supports Python logging, Apache CLF, Nginx error logs, and generic formats — no config needed
+Table of contents
 
----
+- Features
+- Installation
+- Quick start
+- Commands
+- Examples
+- Supported formats
+- Development
+- Contributing
+- License
 
-## ⚡ Quick Start
+## Features
+
+- Level filtering (DEBUG, INFO, WARN, ERROR, FATAL)
+- Regex or keyword pattern search with inline highlighting
+- Time-range slicing with `--since` / `--until`
+- Aggregate multiple files with automatic `File` column
+- Live tail/watch mode with history buffer
+- Export results to CSV, JSON, or plain text
+- Auto-detection for Python logging, Nginx, Apache CLF, and generic formats
+
+## Installation
 
 Install from PyPI:
 
@@ -35,27 +49,42 @@ Install from PyPI:
 pip install loglens
 ```
 
-Or clone and run immediately with the bundled sample log:
+Or install in editable mode for development:
 
 ```bash
 git clone https://github.com/InukaWijerathna/LogLensee.git
 cd LogLensee
 pip install -e .
+```
 
+## Quick start
+
+Parse a single file and show entries:
+
+```bash
 loglens parse sample_logs/app.log
 ```
 
----
+Watch a file live (shows last 10 lines then streams new ones):
 
-## 📋 Commands
+```bash
+loglens watch app.log --level ERROR
+```
 
-### `parse` — filter and display
+Generate a summary of a log file:
 
-Accepts one or more files. When entries come from different files, a **File** column is added automatically.
+```bash
+loglens stats app.log
+```
+
+## Commands
+
+`parse` — filter and render log entries
 
 ```
 loglens parse LOGFILE [LOGFILE ...] [OPTIONS]
 
+Options:
   -l, --level TEXT      Filter by level: DEBUG | INFO | WARN | ERROR | FATAL
   -p, --pattern TEXT    Regex or keyword search (matches full raw line)
       --since TEXT      Start time  e.g. "2024-01-15 08:00"
@@ -64,7 +93,27 @@ loglens parse LOGFILE [LOGFILE ...] [OPTIONS]
   -H, --highlight       Highlight pattern matches inline
 ```
 
-**Examples**
+`watch` — live tail a file
+
+```
+loglens watch LOGFILE [OPTIONS]
+
+Options:
+  -l, --level TEXT      Filter by level
+  -p, --pattern TEXT    Filter by pattern
+  -n, --lines INTEGER   Lines of history to show on start  [default: 10]
+```
+
+`stats` — aggregate and show summary metrics
+
+```
+loglens stats LOGFILE [LOGFILE ...] [OPTIONS]
+
+Options:
+  -p, --pattern TEXT    Scope stats to matching entries only
+```
+
+## Examples
 
 ```bash
 # Filter to errors
@@ -83,117 +132,44 @@ loglens parse app.log worker.log nginx.log --level ERROR
 loglens parse sample_logs/app.log --level ERROR --export errors.json
 ```
 
----
+## Supported formats
 
-### `watch` — live tail
-
-Streams new lines as they are written. Shows the last N lines of existing content on startup.
-
-```
-loglens watch LOGFILE [OPTIONS]
-
-  -l, --level TEXT      Filter by level
-  -p, --pattern TEXT    Filter by pattern
-  -n, --lines INTEGER   Lines of history to show on start  [default: 10]
-```
-
-```bash
-loglens watch app.log --level ERROR
-loglens watch app.log --pattern "timeout" --highlight
-```
-
----
-
-### `stats` — summary
-
-```
-loglens stats LOGFILE [LOGFILE ...] [OPTIONS]
-
-  -p, --pattern TEXT    Scope stats to matching entries only
-```
-
-```
-LogLense Stats — app.log
-────────────────────────────────────────────────────
-  Total entries    82
-  First entry      2024-01-15 08:00:01
-  Last entry       2024-01-15 09:30:00
-
-  Level Breakdown
-  Level    Count    Bar
-  DEBUG       16    ######------------------------ 19.5%
-  INFO        39    ##############---------------- 47.6%
-  WARN        12    ####-------------------------- 14.6%
-  ERROR       13    #####------------------------- 15.9%
-  FATAL        2    #----------------------------- 2.4%
-```
-
----
-
-## 🗂️ Supported Log Formats
-
-Auto-detected — no flags or config files needed.
+Auto-detected; no config required.
 
 | Format | Example |
 |--------|---------|
-| **Python logging** | `2024-01-15 08:00:01,234 - app.db - ERROR - Connection timeout` |
-| **Nginx error** | `2024/01/15 08:10:00 [error] 1234#0: connect() failed` |
-| **Apache CLF** | `127.0.0.1 - frank [15/Jan/2024:08:00:01 +0000] "GET / HTTP/1.1" 200 1234` |
-| **Generic** | `ERROR: disk full` or `[2024-01-15 08:00] WARN: high memory` |
+| Python logging | 2024-01-15 08:00:01,234 - app.db - ERROR - Connection timeout |
+| Nginx error | 2024/01/15 08:10:00 [error] 1234#0: connect() failed |
+| Apache CLF | 127.0.0.1 - frank [15/Jan/2024:08:00:01 +0000] "GET / HTTP/1.1" 200 1234 |
+| Generic | ERROR: disk full or [2024-01-15 08:00] WARN: high memory |
 
-Level aliases are normalized automatically — `WARNING` → `WARN`, `CRITICAL` → `FATAL`.
+Level aliases are normalized (`WARNING` -> `WARN`, `CRITICAL` -> `FATAL`).
 
----
+## Development
 
-## 📤 Export
-
-```bash
-# Structured columns: timestamp, level, source, message, file
-loglens parse app.log --level ERROR --export errors.csv
-
-# JSON array, one object per entry
-loglens parse app.log --level ERROR --export errors.json
-
-# Original raw lines
-loglens parse app.log --pattern "timeout" --export timeouts.txt
-```
-
----
-
-## 🛠️ Tech Stack
-
-| Library | Purpose |
-|---------|---------|
-| [typer](https://typer.tiangolo.com) | CLI interface |
-| [rich](https://rich.readthedocs.io) | Colored terminal output, tables, panels |
-| [watchdog](https://python-watchdog.readthedocs.io) | Live file watching for `--watch` mode |
-| `re` | Regex pattern matching |
-| `csv` / `json` | Export functionality |
-
----
-
-## 🚀 Dev Setup
+Install dev dependencies and run tests:
 
 ```bash
-git clone https://github.com/InukaWijerathna/LogLensee.git
-cd LogLensee
-pip install -e ".[dev]"
-pytest
+pip install -e .[dev]
+pytest -q
 ```
 
----
+Project layout: see [loglens](loglens) package for CLI entry points and implementation.
 
-## 🗺️ Roadmap
+## Contributing
 
-- [x] v0.1 — `parse` with `--level` and `--pattern`
-- [x] v0.2 — `--since` / `--until` time filters + `stats` command
-- [x] v0.3 — `watch` live tail mode
-- [x] v0.4 — `--export` CSV / TXT + pip installable
-- [x] v0.5 — Multi-file parsing + JSON export
-- [ ] v0.6 — Saved filter presets
+Contributions welcome. Please open issues for bugs or feature requests and follow standard PR workflow:
 
----
+1. Fork the repository
+2. Create a branch for your feature/fix
+3. Add tests where appropriate
+4. Open a pull request
 
-## 📄 License
+## Roadmap
+
+- v0.5: Multi-file parsing, JSON export (current)
+- v0.6: Saved filter presets, config profiles
+
+## License
 
 Apache 2.0 — see [LICENSE](LICENSE) for details.
