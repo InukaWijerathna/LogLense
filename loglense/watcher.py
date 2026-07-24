@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 from pathlib import Path
 from typing import Callable
@@ -11,7 +12,10 @@ class _LogFileHandler(FileSystemEventHandler):
     def __init__(self, filepath: str, callback: Callable[[str], None]) -> None:
         self._filepath = os.path.normcase(os.path.abspath(filepath))
         self._callback = callback
-        self._pos = Path(filepath).stat().st_size
+        try:
+            self._pos = Path(filepath).stat().st_size
+        except OSError:
+            self._pos = 0
 
     def on_modified(self, event) -> None:
         if event.is_directory:
@@ -29,8 +33,8 @@ class _LogFileHandler(FileSystemEventHandler):
                     if stripped.strip():
                         self._callback(stripped)
                 self._pos = fh.tell()
-        except OSError:
-            pass
+        except OSError as exc:
+            print(f"loglense: warning: could not read {self._filepath}: {exc}", file=sys.stderr)
 
 
 def watch_file(filepath: str, callback: Callable[[str], None], tail_lines: int = 10) -> None:
@@ -41,8 +45,8 @@ def watch_file(filepath: str, callback: Callable[[str], None], tail_lines: int =
             existing = [l.rstrip("\n") for l in fh if l.strip()]
         for line in existing[-tail_lines:]:
             callback(line)
-    except OSError:
-        pass
+    except OSError as exc:
+        print(f"loglense: warning: could not read initial content of {filepath}: {exc}", file=sys.stderr)
 
     handler = _LogFileHandler(filepath, callback)
     observer = Observer()

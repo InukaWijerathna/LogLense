@@ -1,7 +1,8 @@
+import re
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Iterator, Optional
-import re
+
 
 @dataclass
 class LogEntry:
@@ -58,7 +59,7 @@ _TIMESTAMP_FORMATS = [
     "%d/%b/%Y:%H:%M:%S",
 ]
 
-_LEVEL_NORMALIZE = {"WARNING": "WARN", "CRITICAL": "FATAL"}
+LEVEL_NORMALIZE = {"WARNING": "WARN", "CRITICAL": "FATAL"}
 
 
 def _parse_timestamp(raw: str) -> Optional[datetime]:
@@ -83,7 +84,7 @@ def parse_line(line: str) -> LogEntry:
         g = m.groupdict()
         ts = _parse_timestamp(g.get("timestamp") or "")
         raw_level = (g.get("level") or "").upper()
-        level = _LEVEL_NORMALIZE.get(raw_level, raw_level) or None
+        level = LEVEL_NORMALIZE.get(raw_level, raw_level) or None
         source = g.get("source") or g.get("host") or None
 
         if fmt_name == "apache":

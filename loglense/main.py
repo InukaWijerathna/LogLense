@@ -21,11 +21,12 @@ from rich.text import Text
 
 from . import __version__
 from .exporter import export
-from .filters import apply_filters, filter_level, filter_pattern
+from .filters import apply_filters, compile_pattern, filter_pattern
 from .parser import LogEntry, parse_file, parse_line
+from .watcher import watch_file
 
 app = typer.Typer(
-    name="loglens",
+    name="loglense",
     help="[bold cyan]LogLense[/bold cyan] — smart CLI log parser, filter, and watcher.",
     rich_markup_mode="rich",
     add_completion=False,
@@ -108,10 +109,14 @@ def _highlight(text: str, regex: Optional[re.Pattern]) -> Text:  # type: ignore[
 def _build_regex(pattern: Optional[str]) -> Optional[re.Pattern]:  # type: ignore[type-arg]
     if not pattern:
         return None
-    try:
-        return re.compile(pattern, re.IGNORECASE)
-    except re.error:
-        return re.compile(re.escape(pattern), re.IGNORECASE)
+    return compile_pattern(pattern)
+
+
+def _ensure_files_exist(logfiles: List[Path]) -> None:
+    for lf in logfiles:
+        if not lf.exists():
+            console.print(f"[red]File not found:[/red] {lf}")
+            raise typer.Exit(1)
 
 
 def _display_entries(entries: list[LogEntry], regex: Optional[re.Pattern] = None) -> None:  # type: ignore[type-arg]
@@ -168,10 +173,7 @@ def parse(
     highlight: bool = typer.Option(False, "--highlight", "-H", help="Highlight pattern matches in output"),
 ) -> None:
     """Parse and filter one or more log files."""
-    for lf in logfiles:
-        if not lf.exists():
-            console.print(f"[red]File not found:[/red] {lf}")
-            raise typer.Exit(1)
+    _ensure_files_exist(logfiles)
 
     since_dt = _parse_dt(since)
     until_dt = _parse_dt(until)
@@ -207,15 +209,11 @@ def watch(
 
     def on_line(raw: str) -> None:
         entry = parse_line(raw)
-        filtered = [entry]
-        if level:
-            filtered = filter_level(filtered, level)
-        if pattern:
-            filtered = filter_pattern(filtered, pattern)
-        if not filtered:
+        matched = apply_filters([entry], level=level, pattern=pattern)
+        if not matched:
             return
 
-        e = filtered[0]
+        e = matched[0]
         ts = e.timestamp.strftime("%H:%M:%S") if e.timestamp else "--:--:--"
         lv_style = LEVEL_STYLES.get(e.level or "", "white")
         lv = f"{e.level or '?':<7}"
@@ -228,7 +226,6 @@ def watch(
         line_text.append_text(msg)
         console.print(line_text)
 
-    from .watcher import watch_file
     watch_file(str(logfile), on_line, tail_lines=lines)
 
 
@@ -238,10 +235,7 @@ def stats(
     pattern: Optional[str] = typer.Option(None, "--pattern", "-p", help="Scope stats to entries matching this pattern"),
 ) -> None:
     """Show a summary of log levels, time range, and top message patterns."""
-    for lf in logfiles:
-        if not lf.exists():
-            console.print(f"[red]File not found:[/red] {lf}")
-            raise typer.Exit(1)
+    _ensure_files_exist(logfiles)
 
     all_entries: list[LogEntry] = []
     for lf in logfiles:
@@ -301,9 +295,6 @@ def stats(
 
 
 def main() -> None:
-    import sys
-    if hasattr(sys.stdout, "reconfigure"):
-        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     app()
 
 
