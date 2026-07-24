@@ -1,3 +1,5 @@
+"""Typer CLI entrypoints for parsing, watching, and inspecting logs."""
+
 from __future__ import annotations
 
 import re

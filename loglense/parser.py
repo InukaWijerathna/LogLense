@@ -1,3 +1,5 @@
+"""Detects common log formats and parses them into LogEntry objects."""
+
 import re
 from dataclasses import dataclass, field
 from datetime import datetime

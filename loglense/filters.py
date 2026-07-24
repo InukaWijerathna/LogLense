@@ -1,3 +1,5 @@
+"""Filtering helpers for log level, pattern, and time-range queries."""
+
 import re
 from datetime import datetime
 from typing import List, Optional

@@ -1,3 +1,5 @@
+"""Exports parsed log entries to plain text, CSV, or JSON files."""
+
 import csv
 import json
 from typing import List
