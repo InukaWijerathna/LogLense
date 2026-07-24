@@ -2,8 +2,8 @@ from datetime import datetime
 
 import pytest
 
-from loglens.parser import LogEntry, parse_line
-from loglens.filters import (
+from loglense.parser import LogEntry, parse_line
+from loglense.filters import (
     apply_filters,
     filter_level,
     filter_min_level,

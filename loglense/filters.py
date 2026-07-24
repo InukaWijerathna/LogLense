@@ -1,15 +1,23 @@
+import re
 from datetime import datetime
 from typing import List, Optional
-import re
 
-from .parser import LogEntry
+from .parser import LEVEL_NORMALIZE, LogEntry
 
 _LEVEL_ORDER = {"DEBUG": 0, "INFO": 1, "WARN": 2, "ERROR": 3, "FATAL": 4}
-_NORMALIZE = {"WARNING": "WARN", "CRITICAL": "FATAL"}
 
 
 def _normalize_level(level: str) -> str:
-    return _NORMALIZE.get(level.upper(), level.upper())
+    return LEVEL_NORMALIZE.get(level.upper(), level.upper())
+
+
+def compile_pattern(pattern: str) -> "re.Pattern[str]":
+    """Compile *pattern* as a case-insensitive regex, falling back to a literal
+    escaped match if it isn't valid regex syntax."""
+    try:
+        return re.compile(pattern, re.IGNORECASE)
+    except re.error:
+        return re.compile(re.escape(pattern), re.IGNORECASE)
 
 
 def filter_level(entries: List[LogEntry], level: Optional[str]) -> List[LogEntry]:
@@ -29,10 +37,7 @@ def filter_min_level(entries: List[LogEntry], min_level: Optional[str]) -> List[
 def filter_pattern(entries: List[LogEntry], pattern: Optional[str]) -> List[LogEntry]:
     if not pattern:
         return entries
-    try:
-        regex = re.compile(pattern, re.IGNORECASE)
-    except re.error:
-        regex = re.compile(re.escape(pattern), re.IGNORECASE)
+    regex = compile_pattern(pattern)
     return [e for e in entries if regex.search(e.raw)]
 
 

@@ -29,7 +29,7 @@ Key goals:
 ### Option 1: Install from PyPI (recommended)
 
 ```bash
-pip install loglens
+pip install loglense
 ```
 
 ### Option 2: Install from source (developer)
@@ -48,19 +48,19 @@ pip install -e .
 
 ```bash
 # show parsed entries
-loglens parse sample_logs/app.log
+loglense parse sample_logs/app.log
 ```
 
 2. Watch a file live (shows history then streams new lines):
 
 ```bash
-loglens watch sample_logs/app.log --level ERROR
+loglense watch sample_logs/app.log --level ERROR
 ```
 
 3. Aggregate and export errors to JSON:
 
 ```bash
-loglens parse app.log worker.log --level ERROR --export errors.json
+loglense parse app.log worker.log --level ERROR --export errors.json
 ```
 
 ### Commands quick reference
@@ -69,7 +69,7 @@ loglens parse app.log worker.log --level ERROR --export errors.json
 - `watch` — live tail a file
 - `stats` — show aggregate metrics
 
-Use `--help` on any subcommand for full options, e.g. `loglens parse --help`.
+Use `--help` on any subcommand for full options, e.g. `loglense parse --help`.
 
 ---
 
@@ -77,7 +77,7 @@ Use `--help` on any subcommand for full options, e.g. `loglens parse --help`.
 
 ```
 LogLense/
-├── loglens/                 # Python package
+├── loglense/                # Python package
 │   ├── __init__.py
 │   ├── main.py              # CLI entrypoints
 │   ├── parser.py            # Parsing & detection logic
@@ -98,7 +98,7 @@ LogLense/
 | Component    | Technology |
 |--------------|------------|
 | Language     | Python 3.8+ |
-| CLI framework| Click / argparse |
+| CLI framework| typer |
 | Output/style | rich (color + tables) |
 | Testing      | pytest |
 | Packaging    | pyproject.toml / pip |
@@ -125,7 +125,7 @@ pytest -q
 Run the CLI locally:
 
 ```bash
-python -m loglens parse sample_logs/app.log
+python -m loglense parse sample_logs/app.log
 ```
 
 ---
@@ -139,7 +139,7 @@ Contributions are welcome. Please:
 3. Add tests for new behavior
 4. Open a pull request
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) if present for coding guidelines.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for coding guidelines.
 
 ---
 
