@@ -19,7 +19,7 @@ Key goals:
 - 🧭 Regex or keyword search with inline highlights
 - ⏱ Time-range slicing with `--since` / `--until`
 - 📂 Aggregate multiple files with automatic `File` column
-- 📤 Export to CSV, JSON, or plain text
+- 📤 Export to CSV, JSON, Markdown or plain text
 - ⚙️ Auto-detection for Python logging, Nginx, Apache CLF, and generic formats
 
 ---
@@ -63,6 +63,12 @@ loglense watch sample_logs/app.log --level ERROR
 loglense parse app.log worker.log --level ERROR --export errors.json
 ```
 
+4. Export results as a Markdown table:
+
+```bash
+loglense parse app.log --export report.md
+```
+
 ### Commands quick reference
 
 - `parse` — filter and render log entries
@@ -82,7 +88,7 @@ LogLense/
 │   ├── main.py              # CLI entrypoints
 │   ├── parser.py            # Parsing & detection logic
 │   ├── filters.py           # Filter helpers
-│   ├── exporter.py          # Export to CSV/JSON
+│   ├── exporter.py          # Export to CSV/JSON/Markdown, or plain text
 │   └── watcher.py           # Tail/watch implementation
 ├── sample_logs/             # Example log files used in tests/docs
 ├── tests/                   # Unit tests
