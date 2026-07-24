@@ -42,7 +42,7 @@ def watch_file(filepath: str, callback: Callable[[str], None], tail_lines: int =
     # Print the last tail_lines of existing content first
     try:
         with open(filepath, "r", encoding="utf-8", errors="replace") as fh:
-            existing = [l.rstrip("\n") for l in fh if l.strip()]
+            existing = [ln.rstrip("\n") for ln in fh if ln.strip()]
         for line in existing[-tail_lines:]:
             callback(line)
     except OSError as exc:
