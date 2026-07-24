@@ -7,7 +7,7 @@ import sys
 from collections import Counter
 from datetime import datetime
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 # Ensure UTF-8 output on Windows (CP1252 terminals can't render Rich's box chars)
 if hasattr(sys.stdout, "reconfigure"):
@@ -78,7 +78,7 @@ LEVEL_STYLES: dict[str, str] = {
 # Helpers
 # ---------------------------------------------------------------------------
 
-def _parse_dt(value: str | None) -> datetime | None:
+def _parse_dt(value: Optional[str]) -> Optional[datetime]:
     if not value:
         return None
     for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M", "%Y-%m-%d", "%Y/%m/%d %H:%M:%S"):
@@ -89,13 +89,13 @@ def _parse_dt(value: str | None) -> datetime | None:
     raise typer.BadParameter(f"Cannot parse date '{value}'. Try: YYYY-MM-DD HH:MM:SS")
 
 
-def _level_text(level: str | None) -> Text:
+def _level_text(level: Optional[str]) -> Text:
     if not level:
         return Text("-", style="dim")
     return Text(f"{level:<7}", style=LEVEL_STYLES.get(level, "white"))
 
 
-def _highlight(text: str, regex: re.Pattern | None) -> Text:  # type: ignore[type-arg]
+def _highlight(text: str, regex: Optional[re.Pattern]) -> Text:  # type: ignore[type-arg]
     if not regex:
         return Text(text)
     result = Text()
@@ -108,7 +108,7 @@ def _highlight(text: str, regex: re.Pattern | None) -> Text:  # type: ignore[typ
     return result
 
 
-def _build_regex(pattern: str | None) -> re.Pattern | None:  # type: ignore[type-arg]
+def _build_regex(pattern: Optional[str]) -> Optional[re.Pattern]:  # type: ignore[type-arg]
     if not pattern:
         return None
     return compile_pattern(pattern)
@@ -121,7 +121,7 @@ def _ensure_files_exist(logfiles: List[Path]) -> None:
             raise typer.Exit(1)
 
 
-def _display_entries(entries: list[LogEntry], regex: re.Pattern | None) -> None:  # type: ignore[type-arg]
+def _display_entries(entries: list[LogEntry], regex: Optional[re.Pattern] = None) -> None:  # type: ignore[type-arg]
     if not entries:
         console.print("[dim]No matching log entries found.[/dim]")
         return
@@ -167,11 +167,11 @@ def _callback(ctx: typer.Context) -> None:
 @app.command()
 def parse(
     logfiles: List[Path] = typer.Argument(..., help="One or more log files to parse"),
-    level: str | None = typer.Option(None, "--level", "-l", help="Filter by level: DEBUG, INFO, WARN, ERROR, FATAL"),
-    pattern: str | None = typer.Option(None, "--pattern", "-p", help="Regex or keyword search"),
-    since: str | None = typer.Option(None, "--since", help='Include entries from this time, e.g. "2024-01-01 08:00"'),
-    until: str | None = typer.Option(None, "--until", help='Include entries up to this time, e.g. "2024-01-01 12:00"'),
-    export_path: str | None = typer.Option(None, "--export", "-e", metavar="FILE", help="Save results to .txt, .csv, or .json"),
+    level: Optional[str] = typer.Option(None, "--level", "-l", help="Filter by level: DEBUG, INFO, WARN, ERROR, FATAL"),
+    pattern: Optional[str] = typer.Option(None, "--pattern", "-p", help="Regex or keyword search"),
+    since: Optional[str] = typer.Option(None, "--since", help='Include entries from this time, e.g. "2024-01-01 08:00"'),
+    until: Optional[str] = typer.Option(None, "--until", help='Include entries up to this time, e.g. "2024-01-01 12:00"'),
+    export_path: Optional[Path] = typer.Option(None, "--export", "-e", metavar="FILE", help="Save results to .txt, .csv, or .json"),
     highlight: bool = typer.Option(False, "--highlight", "-H", help="Highlight pattern matches in output"),
 ) -> None:
     """Parse and filter one or more log files."""
@@ -197,8 +197,8 @@ def parse(
 @app.command()
 def watch(
     logfile: Path = typer.Argument(..., help="Log file to watch", exists=True, readable=True),
-    level: str | None = typer.Option(None, "--level", "-l", help="Filter by level"),
-    pattern: str | None = typer.Option(None, "--pattern", "-p", help="Regex or keyword search"),
+    level: Optional[str] = typer.Option(None, "--level", "-l", help="Filter by level"),
+    pattern: Optional[str] = typer.Option(None, "--pattern", "-p", help="Regex or keyword search"),
     lines: int = typer.Option(10, "--lines", "-n", help="Lines of existing content to show on start"),
 ) -> None:
     """Watch a live log file and stream new entries (like tail -f, but smarter)."""
@@ -234,7 +234,7 @@ def watch(
 @app.command()
 def stats(
     logfiles: List[Path] = typer.Argument(..., help="One or more log files to summarize"),
-    pattern: str | None = typer.Option(None, "--pattern", "-p", help="Scope stats to entries matching this pattern"),
+    pattern: Optional[str] = typer.Option(None, "--pattern", "-p", help="Scope stats to entries matching this pattern"),
 ) -> None:
     """Show a summary of log levels, time range, and top message patterns."""
     _ensure_files_exist(logfiles)
