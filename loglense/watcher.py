@@ -1,3 +1,5 @@
+"""Watches a log file and streams appended lines to a callback."""
+
 import os
 import sys
 import time
