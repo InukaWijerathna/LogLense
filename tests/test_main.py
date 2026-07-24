@@ -12,6 +12,20 @@ SAMPLE_LOG = (
     "2024-01-15 08:23:46,123 - app - ERROR - something broke\n"
 )
 
+FULL_LEVEL_LOG = (
+    "2024-01-15 08:00:00,000 - app - DEBUG - debug msg\n"
+    "2024-01-15 08:01:00,000 - app - INFO - info msg\n"
+    "2024-01-15 08:02:00,000 - app - WARN - warn msg\n"
+    "2024-01-15 08:03:00,000 - app - ERROR - error msg\n"
+    "2024-01-15 08:04:00,000 - app - FATAL - fatal msg\n"
+)
+
+@pytest.fixture
+def full_level_log(tmp_path):
+    path = tmp_path / "levels.log"
+    path.write_text(FULL_LEVEL_LOG, encoding="utf-8")
+    return path
+
 
 @pytest.fixture
 def log_file(tmp_path):
@@ -65,3 +79,40 @@ def test_stats_command_reports_totals(log_file):
     result = runner.invoke(app, ["stats", str(log_file)])
     assert result.exit_code == 0
     assert "Total entries" in result.stdout
+
+def test_parse_command_min_level_warn_keeps_warn_and_above(full_level_log):
+    result = runner.invoke(
+        app,
+        ["parse", str(full_level_log), "--min-level", "WARN"],
+    )
+
+    assert result.exit_code == 0
+
+    assert "warn msg" in result.stdout
+    assert "error msg" in result.stdout
+    assert "fatal msg" in result.stdout
+
+    assert "debug msg" not in result.stdout
+    assert "info msg" not in result.stdout
+
+def test_parse_command_level_and_min_level_together(full_level_log):
+    result = runner.invoke(
+        app,
+        [
+            "parse",
+            str(full_level_log),
+            "--level",
+            "ERROR",
+            "--min-level",
+            "WARN",
+        ],
+    )
+
+    assert result.exit_code == 0
+
+    assert "error msg" in result.stdout
+
+    assert "debug msg" not in result.stdout
+    assert "info msg" not in result.stdout
+    assert "warn msg" not in result.stdout
+    assert "fatal msg" not in result.stdout

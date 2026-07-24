@@ -63,7 +63,31 @@ loglense watch sample_logs/app.log --level ERROR
 loglense parse app.log worker.log --level ERROR --export errors.json
 ```
 
-4. Export results as a Markdown table:
+4. Filter for an exact log level:
+
+```bash
+loglense parse sample_logs/app.log --level ERROR
+```
+
+Returns only `ERROR` entries.
+
+5. Filter by minimum severity threshold:
+
+```bash
+loglense parse sample_logs/app.log --min-level WARN
+```
+
+Returns `WARN`, `ERROR`, and `FATAL` entries.
+
+6. Both options can be combined:
+
+```bash
+loglense parse sample_logs/app.log --level ERROR --min-level WARN
+```
+
+In this case, only `ERROR` entries are returned because the exact level filter is applied first.
+
+7. Export results as a Markdown table:
 
 ```bash
 loglense parse app.log --export report.md
