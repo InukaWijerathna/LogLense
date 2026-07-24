@@ -2,7 +2,7 @@ import csv
 import json
 from datetime import datetime
 
-from loglense.exporter import export, export_csv, export_json, export_txt
+from loglense.exporter import export, export_csv, export_json, export_markdown, export_txt
 from loglense.parser import LogEntry
 
 
@@ -69,10 +69,45 @@ def test_export_dispatches_by_extension(tmp_path):
     export(entries, str(tmp_path / "a.csv"))
     export(entries, str(tmp_path / "b.json"))
     export(entries, str(tmp_path / "c.txt"))
-    export(entries, str(tmp_path / "d.unknown"))
+    export(entries, str(tmp_path / "d.md"))
+    export(entries, str(tmp_path / "e.unknown"))
 
     assert (tmp_path / "a.csv").exists()
     assert (tmp_path / "b.json").exists()
     assert (tmp_path / "c.txt").exists()
+    assert (tmp_path / "d.md").exists()
     # unrecognized extensions fall back to plain text
-    assert (tmp_path / "d.unknown").read_text(encoding="utf-8") == "raw line\n"
+    assert (tmp_path / "e.unknown").read_text(encoding="utf-8") == "raw line\n"
+
+
+def test_export_markdown(tmp_path):
+    path = tmp_path / "out.md"
+
+    export_markdown([_entry()], str(path))
+
+    text = path.read_text(encoding="utf-8")
+
+    assert "| Timestamp | Level | Source | Message | File |" in text
+    assert "2024-01-15T08:23:45" in text
+    assert "ERROR" in text
+    assert "boom" in text
+
+
+def test_export_markdown_empty(tmp_path):
+    path = tmp_path / "out.md"
+
+    export_markdown([], str(path))
+
+    text = path.read_text(encoding="utf-8")
+
+    assert "| Timestamp | Level | Source | Message | File |" in text
+
+
+def test_export_markdown_escapes_pipes(tmp_path):
+    path = tmp_path / "out.md"
+
+    export_markdown([_entry(message="hello | world")], str(path))
+
+    text = path.read_text(encoding="utf-8")
+
+    assert "hello \\| world" in text
