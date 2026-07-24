@@ -1,8 +1,5 @@
 from datetime import datetime
 
-import pytest
-
-from loglense.parser import LogEntry, parse_line
 from loglense.filters import (
     apply_filters,
     filter_level,
@@ -11,7 +8,7 @@ from loglense.filters import (
     filter_since,
     filter_until,
 )
-
+from loglense.parser import LogEntry, parse_line
 
 # ---------------------------------------------------------------------------
 # parse_line
@@ -163,7 +160,7 @@ class TestApplyFilters:
         line1 = "2024-01-15 08:00:00,000 - app - ERROR - Connection timeout"
         line2 = "2024-01-15 08:01:00,000 - app - ERROR - Disk full"
         line3 = "2024-01-15 08:02:00,000 - app - INFO - Connection opened"
-        entries = [parse_line(l) for l in [line1, line2, line3]]
+        entries = [parse_line(ln) for ln in [line1, line2, line3]]
         result = apply_filters(entries, level="ERROR", pattern="timeout")
         assert len(result) == 1
         assert "timeout" in result[0].message.lower()
