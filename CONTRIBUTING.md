@@ -24,6 +24,9 @@ ruff check .
 
 5. Open a pull request describing the change and why it's needed.
 
+
+6. For user-facing changes, update `CHANGELOG.md` under `[Unreleased]` (or the appropriate version section) before opening the PR.
+
 ## Code style
 
 - Follow the existing type-hint style (`from __future__ import annotations`, builtin generics).
