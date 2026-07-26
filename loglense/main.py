@@ -167,12 +167,18 @@ def _callback(ctx: typer.Context) -> None:
 @app.command()
 def parse(
     logfiles: List[Path] = typer.Argument(..., help="One or more log files to parse"),
-    level: Optional[str] = typer.Option(None, "--level", "-l", help="Filter by level: DEBUG, INFO, WARN, ERROR, FATAL"),
+    level: Optional[str] = typer.Option(None, "--level", "-l", help="Match an exact log level (DEBUG, INFO, WARN, ERROR, FATAL)"),
     pattern: Optional[str] = typer.Option(None, "--pattern", "-p", help="Regex or keyword search"),
     since: Optional[str] = typer.Option(None, "--since", help='Include entries from this time, e.g. "2024-01-01 08:00"'),
     until: Optional[str] = typer.Option(None, "--until", help='Include entries up to this time, e.g. "2024-01-01 12:00"'),
     export_path: Optional[Path] = typer.Option(None, "--export", "-e", metavar="FILE", help="Save results to .txt, .csv, or .json"),
     highlight: bool = typer.Option(False, "--highlight", "-H", help="Highlight pattern matches in output"),
+    min_level: Optional[str] = typer.Option(
+        None,
+        "--min-level",
+        "-m",
+        help="Show entries at or above this severity level (DEBUG, INFO, WARN, ERROR, FATAL). Ignored when --level is set.",
+    )
 ) -> None:
     """Parse and filter one or more log files."""
     _ensure_files_exist(logfiles)
@@ -185,7 +191,7 @@ def parse(
     for lf in logfiles:
         all_entries.extend(parse_file(str(lf)))
 
-    entries = apply_filters(all_entries, level=level, pattern=pattern, since=since_dt, until=until_dt)
+    entries = apply_filters(all_entries, level=level, min_level=min_level, pattern=pattern, since=since_dt, until=until_dt)
 
     _display_entries(entries, regex=regex)
 
@@ -197,9 +203,15 @@ def parse(
 @app.command()
 def watch(
     logfile: Path = typer.Argument(..., help="Log file to watch", exists=True, readable=True),
-    level: Optional[str] = typer.Option(None, "--level", "-l", help="Filter by level"),
+    level: Optional[str] = typer.Option(None, "--level", "-l", help="Match an exact log level (DEBUG, INFO, WARN, ERROR, FATAL)"),
     pattern: Optional[str] = typer.Option(None, "--pattern", "-p", help="Regex or keyword search"),
     lines: int = typer.Option(10, "--lines", "-n", help="Lines of existing content to show on start"),
+    min_level: Optional[str] = typer.Option(
+        None,
+        "--min-level",
+        "-m",
+        help="Show entries at or above this severity level (DEBUG, INFO, WARN, ERROR, FATAL). Ignored when --level is set.",
+    )
 ) -> None:
     """Watch a live log file and stream new entries (like tail -f, but smarter)."""
     console.print(
@@ -211,7 +223,7 @@ def watch(
 
     def on_line(raw: str) -> None:
         entry = parse_line(raw)
-        matched = apply_filters([entry], level=level, pattern=pattern)
+        matched = apply_filters([entry], level=level, min_level=min_level, pattern=pattern)
         if not matched:
             return
 

@@ -58,11 +58,14 @@ def filter_until(entries: List[LogEntry], until: Optional[datetime]) -> List[Log
 def apply_filters(
     entries: List[LogEntry],
     level: Optional[str] = None,
+    min_level: Optional[str] = None,
     pattern: Optional[str] = None,
     since: Optional[datetime] = None,
     until: Optional[datetime] = None,
 ) -> List[LogEntry]:
     entries = filter_level(entries, level)
+    if not level:
+        entries = filter_min_level(entries , min_level)
     entries = filter_pattern(entries, pattern)
     entries = filter_since(entries, since)
     entries = filter_until(entries, until)
