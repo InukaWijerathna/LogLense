@@ -173,7 +173,7 @@ def parse(
     until: Optional[str] = typer.Option(None, "--until", help='Include entries up to this time, e.g. "2024-01-01 12:00"'),
     export_path: Optional[Path] = typer.Option(None, "--export", "-e", metavar="FILE", help="Save results to .txt, .csv, or .json"),
     highlight: bool = typer.Option(False, "--highlight", "-H", help="Highlight pattern matches in output"),
-    min_level: Optional[str] = typer.Option(None , "--min-level" , "-m" , help="Show entries at or above this severity level")
+    min_level: Optional[str] = typer.Option(None, "--min-level", "-m", help="Show entries at or above this severity level (DEBUG, INFO, WARN, ERROR, FATAL). Ignored when --level is set.")
 ) -> None:
     """Parse and filter one or more log files."""
     _ensure_files_exist(logfiles)
@@ -201,7 +201,7 @@ def watch(
     level: Optional[str] = typer.Option(None, "--level", "-l", help="Match an exact log level (DEBUG, INFO, WARN, ERROR, FATAL)"),
     pattern: Optional[str] = typer.Option(None, "--pattern", "-p", help="Regex or keyword search"),
     lines: int = typer.Option(10, "--lines", "-n", help="Lines of existing content to show on start"),
-    min_level: Optional[str] = typer.Option(None , "--min-level" , "-m" , help="Show entries at or above this severity level")
+    min_level: Optional[str] = typer.Option(None, "--min-level", "-m", help="Show entries at or above this severity level (DEBUG, INFO, WARN, ERROR, FATAL). Ignored when --level is set.")
 ) -> None:
     """Watch a live log file and stream new entries (like tail -f, but smarter)."""
     console.print(

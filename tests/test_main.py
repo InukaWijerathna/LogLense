@@ -116,3 +116,24 @@ def test_parse_command_level_and_min_level_together(full_level_log):
     assert "info msg" not in result.stdout
     assert "warn msg" not in result.stdout
     assert "fatal msg" not in result.stdout
+
+def test_level_takes_precedence_over_min_level(full_level_log):
+    result = runner.invoke(
+        app,
+        [
+            "parse",
+            str(full_level_log),
+            "--level",
+            "INFO",
+            "--min-level",
+            "WARN",
+        ],
+    )
+
+    assert result.exit_code == 0
+
+    assert "info msg" in result.stdout
+
+    assert "warn msg" not in result.stdout
+    assert "error msg" not in result.stdout
+    assert "fatal msg" not in result.stdout

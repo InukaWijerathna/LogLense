@@ -64,7 +64,8 @@ def apply_filters(
     until: Optional[datetime] = None,
 ) -> List[LogEntry]:
     entries = filter_level(entries, level)
-    entries = filter_min_level(entries , min_level)
+    if not level:
+        entries = filter_min_level(entries , min_level)
     entries = filter_pattern(entries, pattern)
     entries = filter_since(entries, since)
     entries = filter_until(entries, until)

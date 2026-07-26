@@ -84,8 +84,7 @@ Returns `WARN`, `ERROR`, and `FATAL` entries.
 ```bash
 loglense parse sample_logs/app.log --level ERROR --min-level WARN
 ```
-
-In this case, only `ERROR` entries are returned because the exact level filter is applied first.
+In this case, only `ERROR` entries are returned because `--level` takes precedence (when `--level` is set, `--min-level` is ignored).
 
 7. Export results as a Markdown table:
 
