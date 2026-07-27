@@ -80,6 +80,7 @@ def _parse_timestamp(raw: str) -> Optional[datetime]:
             continue
     return None
 
+
 def _parse_json_log(data: dict, line: str) -> LogEntry:
     """Parse the json log and extract timestamps, level, messages and source"""
     raw_level = data.get("level") or data.get("lvl") or data.get("severity")
@@ -90,14 +91,31 @@ def _parse_json_log(data: dict, line: str) -> LogEntry:
     else:
         normalized_level = None
 
-    message = data.get("message") or data.get("msg") or ""
+    message = data.get("message")
+
+    if message is None:
+        message = data.get("msg")
+
+    message = "" if message is None else str(message)
 
     raw_ts = data.get("timestamp") or data.get("time") or data.get("ts")
-    parsed_ts = _parse_timestamp(raw_ts) if raw_ts else None
+    if isinstance(raw_ts, str):
+        parsed_ts = _parse_timestamp(raw_ts) if raw_ts else None
+    else:
+        parsed_ts = None
 
-    source = data.get("source") or data.get("logger") or data.get("src") or None
+    source = data.get("source")
 
-    return LogEntry(timestamp=parsed_ts, level=normalized_level, message=str(message), source=source, raw=line)
+    if source is None:
+        source = data.get("logger")
+
+    if source is None:
+        source = data.get("src")
+
+    source = None if source is None else str(source)
+
+    return LogEntry(timestamp=parsed_ts, level=normalized_level, message=message, source=source, raw=line)
+
 
 def parse_line(line: str) -> LogEntry:
     line = line.rstrip()

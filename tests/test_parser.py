@@ -83,6 +83,7 @@ class TestParseLine:
 
     def test_iso_timestamp_variants(self):
         cases = [
+            ("2024-01-15T08:10:15", datetime(2024, 1, 15, 8, 10, 15)),
             ("2024-01-15T08:10:15Z", datetime(2024, 1, 15, 8, 10, 15)),
             ("2024-01-15T08:10:15.123Z", datetime(2024, 1, 15, 8, 10, 15, 123000)),
             ("2024-01-15T08:10:15+0000", datetime(2024, 1, 15, 8, 10, 15)),
@@ -93,6 +94,26 @@ class TestParseLine:
             line = json.dumps({"timestamp": timestamp, "message": "started"})
             e = parse_line(line)
             assert e.timestamp == expected
+
+    def test_json_numeric_timestamp_regression(self):
+        line = json.dumps({"ts": 1721212121, "level": "INFO", "message": "numeric ts"})
+        e = parse_line(line)
+        assert e.timestamp is None
+        assert e.level == "INFO"
+        assert e.message == "numeric ts"
+
+    def test_malformed_json_fallback_and_missing_optional_fields(self):
+        malformed = '{"timestamp":"2024-01-15T08:10:15Z","level":"INFO","message":"ok"'
+        fallback = parse_line(malformed)
+        assert fallback.level is None
+        assert fallback.source is None
+        assert fallback.message == malformed
+
+        missing_optional = json.dumps({"message": "just message"})
+        parsed = parse_line(missing_optional)
+        assert parsed.level is None
+        assert parsed.source is None
+        assert parsed.message == "just message"
 
 
 # ---------------------------------------------------------------------------
