@@ -60,11 +60,11 @@ _TIMESTAMP_FORMATS = [
     "%Y/%m/%d %H:%M:%S",
     "%d/%b/%Y:%H:%M:%S %z",
     "%d/%b/%Y:%H:%M:%S",
-    "%Y-%m-%dT%H:%M:%S",        
-    "%Y-%m-%dT%H:%M:%SZ",  
+    "%Y-%m-%dT%H:%M:%S",
+    "%Y-%m-%dT%H:%M:%SZ",
     "%Y-%m-%dT%H:%M:%S.%fZ",
     "%Y-%m-%dT%H:%M:%S%z",
-    "%Y-%m-%d %H:%M:%SZ",
+    "%Y-%m-%d %H:%M:%SZ"
 ]
 
 LEVEL_NORMALIZE = {"WARNING": "WARN", "CRITICAL": "FATAL"}
