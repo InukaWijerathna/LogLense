@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from datetime import datetime
 
 from loglense.filters import (
@@ -64,6 +65,55 @@ class TestParseLine:
         line = "2024-01-15 08:00:00,000 - app - CRITICAL - crash"
         e = parse_line(line)
         assert e.level == "FATAL"
+
+    def test_json_log_parsing(self):
+        line = json.dumps(
+            {
+                "timestamp": "2024-01-15T08:10:15Z",
+                "severity": "warning",
+                "msg": "service starting",
+                "src": "api.worker",
+            }
+        )
+        e = parse_line(line)
+        assert e.timestamp == datetime(2024, 1, 15, 8, 10, 15)
+        assert e.level == "WARN"
+        assert e.message == "service starting"
+        assert e.source == "api.worker"
+
+    def test_iso_timestamp_variants(self):
+        cases = [
+            ("2024-01-15T08:10:15", datetime(2024, 1, 15, 8, 10, 15)),
+            ("2024-01-15T08:10:15Z", datetime(2024, 1, 15, 8, 10, 15)),
+            ("2024-01-15T08:10:15.123Z", datetime(2024, 1, 15, 8, 10, 15, 123000)),
+            ("2024-01-15T08:10:15+0000", datetime(2024, 1, 15, 8, 10, 15)),
+            ("2024-01-15 08:10:15Z", datetime(2024, 1, 15, 8, 10, 15)),
+        ]
+
+        for timestamp, expected in cases:
+            line = json.dumps({"timestamp": timestamp, "message": "started"})
+            e = parse_line(line)
+            assert e.timestamp == expected
+
+    def test_json_numeric_timestamp_regression(self):
+        line = json.dumps({"ts": 1721212121, "level": "INFO", "message": "numeric ts"})
+        e = parse_line(line)
+        assert e.timestamp is None
+        assert e.level == "INFO"
+        assert e.message == "numeric ts"
+
+    def test_malformed_json_fallback_and_missing_optional_fields(self):
+        malformed = '{"timestamp":"2024-01-15T08:10:15Z","level":"INFO","message":"ok"'
+        fallback = parse_line(malformed)
+        assert fallback.level is None
+        assert fallback.source is None
+        assert fallback.message == malformed
+
+        missing_optional = json.dumps({"message": "just message"})
+        parsed = parse_line(missing_optional)
+        assert parsed.level is None
+        assert parsed.source is None
+        assert parsed.message == "just message"
 
 
 # ---------------------------------------------------------------------------

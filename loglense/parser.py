@@ -1,5 +1,6 @@
 """Detects common log formats and parses them into LogEntry objects."""
 
+import json
 import re
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -59,6 +60,11 @@ _TIMESTAMP_FORMATS = [
     "%Y/%m/%d %H:%M:%S",
     "%d/%b/%Y:%H:%M:%S %z",
     "%d/%b/%Y:%H:%M:%S",
+    "%Y-%m-%dT%H:%M:%S",
+    "%Y-%m-%dT%H:%M:%SZ",
+    "%Y-%m-%dT%H:%M:%S.%fZ",
+    "%Y-%m-%dT%H:%M:%S%z",
+    "%Y-%m-%d %H:%M:%SZ"
 ]
 
 LEVEL_NORMALIZE = {"WARNING": "WARN", "CRITICAL": "FATAL"}
@@ -75,9 +81,51 @@ def _parse_timestamp(raw: str) -> Optional[datetime]:
     return None
 
 
+def _parse_json_log(data: dict, line: str) -> LogEntry:
+    """Parse the json log and extract timestamps, level, messages and source"""
+    raw_level = data.get("level") or data.get("lvl") or data.get("severity")
+
+    if raw_level is not None:
+        raw_level = str(raw_level).upper()
+        normalized_level = LEVEL_NORMALIZE.get(raw_level, raw_level)
+    else:
+        normalized_level = None
+
+    message = data.get("message")
+
+    if message is None:
+        message = data.get("msg")
+
+    message = "" if message is None else str(message)
+
+    raw_ts = data.get("timestamp") or data.get("time") or data.get("ts")
+    if isinstance(raw_ts, str):
+        parsed_ts = _parse_timestamp(raw_ts) if raw_ts else None
+    else:
+        parsed_ts = None
+
+    source = data.get("source")
+
+    if source is None:
+        source = data.get("logger")
+
+    if source is None:
+        source = data.get("src")
+
+    source = None if source is None else str(source)
+
+    return LogEntry(timestamp=parsed_ts, level=normalized_level, message=message, source=source, raw=line)
+
+
 def parse_line(line: str) -> LogEntry:
     line = line.rstrip()
 
+    try:
+        data = json.loads(line)
+        if isinstance(data, dict):
+            return _parse_json_log(data, line)
+    except json.JSONDecodeError:
+        pass
     for fmt_name, pattern in _PATTERNS:
         m = pattern.match(line)
         if not m:

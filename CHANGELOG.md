@@ -10,6 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Markdown (`.md`) export support for log entries.
 - Added `--min-level` (`-m`) severity threshold filtering for `parse` and `watch` commands.
+- Added support for parsing structured JSON log entries (JSON Lines).
+- Added support for common JSON log field aliases:
+  - `level`, `lvl`, `severity`
+  - `message`, `msg`
+  - `source`, `logger`, `src`
+  - `timestamp`, `time`, `ts`
+- Added support for additional ISO-8601 timestamp formats commonly used in JSON logs.
 
 ### Changed
 - Clarified CLI help text to distinguish `--level` (exact match) from `--min-level` (severity threshold).

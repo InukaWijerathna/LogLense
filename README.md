@@ -20,7 +20,7 @@ Key goals:
 - ⏱ Time-range slicing with `--since` / `--until`
 - 📂 Aggregate multiple files with automatic `File` column
 - 📤 Export to CSV, JSON, Markdown or plain text
-- ⚙️ Auto-detection for Python logging, Nginx, Apache CLF, and generic formats
+- ⚙️ Auto-detection for Python logging, Nginx, Apache CLF, JSON logs, and generic formats
 
 ---
 
