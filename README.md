@@ -92,6 +92,20 @@ In this case, only `ERROR` entries are returned because `--level` takes preceden
 loglense parse app.log --export report.md
 ```
 
+8. Display summary statistics and log level distribution.
+
+```bash
+loglense stats logs/app.log
+```
+
+9. Warn when the percentage of ERROR/FATAL entries exceeds a threshold:
+
+```bash
+loglense stats logs/app.log --error-threshold 10
+```
+
+The default warning threshold is 5.0%.
+
 ### Commands quick reference
 
 - `parse` — filter and render log entries
