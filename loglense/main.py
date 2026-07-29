@@ -247,6 +247,7 @@ def watch(
 def stats(
     logfiles: List[Path] = typer.Argument(..., help="One or more log files to summarize"),
     pattern: Optional[str] = typer.Option(None, "--pattern", "-p", help="Scope stats to entries matching this pattern"),
+    error_threshold: float = typer.Option(5.0, "--error-threshold", help="Warning threshold for ERROR/FATAL percentage")
 ) -> None:
     """Show a summary of log levels, time range, and top message patterns."""
     _ensure_files_exist(logfiles)
@@ -289,6 +290,16 @@ def stats(
             str(count),
             f"[{style}]{bar}[/{style}] {pct:.1f}%",
         )
+
+    error_count = ( level_counts.get("ERROR", 0) + level_counts.get("FATAL", 0) )
+    error_rate = (error_count / total) * 100 if total else 0.0
+
+    if error_rate > error_threshold:
+        console.print(
+        f"[bold red]⚠ High error rate: "
+        f"{error_rate:.1f}% of entries are ERROR/FATAL[/bold red]"
+        )
+
     console.print(level_table)
 
     # Top message patterns
