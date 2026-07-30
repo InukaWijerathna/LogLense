@@ -2,7 +2,7 @@
 
 import re
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from .parser import LEVEL_NORMALIZE, LogEntry
 
@@ -22,11 +22,14 @@ def compile_pattern(pattern: str) -> "re.Pattern[str]":
         return re.compile(re.escape(pattern), re.IGNORECASE)
 
 
-def filter_level(entries: List[LogEntry], level: Optional[str]) -> List[LogEntry]:
+def filter_level(entries: List[LogEntry], level: Optional[Union[str, List[str]]]) -> List[LogEntry]:
     if not level:
         return entries
-    target = _normalize_level(level)
-    return [e for e in entries if e.level == target]
+    if isinstance(level, str):
+        targets = {_normalize_level(level)}
+    else:
+        targets = {_normalize_level(item) for item in level}
+    return [e for e in entries if e.level in targets]
 
 
 def filter_min_level(entries: List[LogEntry], min_level: Optional[str]) -> List[LogEntry]:
@@ -57,7 +60,7 @@ def filter_until(entries: List[LogEntry], until: Optional[datetime]) -> List[Log
 
 def apply_filters(
     entries: List[LogEntry],
-    level: Optional[str] = None,
+    level: Optional[Union[str, List[str]]] = None,
     min_level: Optional[str] = None,
     pattern: Optional[str] = None,
     since: Optional[datetime] = None,

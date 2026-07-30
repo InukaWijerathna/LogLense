@@ -167,7 +167,7 @@ def _callback(ctx: typer.Context) -> None:
 @app.command()
 def parse(
     logfiles: List[Path] = typer.Argument(..., help="One or more log files to parse"),
-    level: Optional[str] = typer.Option(None, "--level", "-l", help="Match an exact log level (DEBUG, INFO, WARN, ERROR, FATAL)"),
+    level: Optional[List[str]] = typer.Option(None, "--level", "-l", help="Match an exact log level (DEBUG, INFO, WARN, ERROR, FATAL)"),
     pattern: Optional[str] = typer.Option(None, "--pattern", "-p", help="Regex or keyword search"),
     since: Optional[str] = typer.Option(None, "--since", help='Include entries from this time, e.g. "2024-01-01 08:00"'),
     until: Optional[str] = typer.Option(None, "--until", help='Include entries up to this time, e.g. "2024-01-01 12:00"'),
@@ -203,7 +203,7 @@ def parse(
 @app.command()
 def watch(
     logfile: Path = typer.Argument(..., help="Log file to watch", exists=True, readable=True),
-    level: Optional[str] = typer.Option(None, "--level", "-l", help="Match an exact log level (DEBUG, INFO, WARN, ERROR, FATAL)"),
+    level: Optional[List[str]] = typer.Option(None, "--level", "-l", help="Match an exact log level (DEBUG, INFO, WARN, ERROR, FATAL)"),
     pattern: Optional[str] = typer.Option(None, "--pattern", "-p", help="Regex or keyword search"),
     lines: int = typer.Option(10, "--lines", "-n", help="Lines of existing content to show on start"),
     min_level: Optional[str] = typer.Option(

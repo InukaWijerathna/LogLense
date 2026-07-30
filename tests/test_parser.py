@@ -138,6 +138,11 @@ class TestFilterLevel:
         entries = _entries("INFO", "ERROR", "WARN", "ERROR")
         assert len(filter_level(entries, "ERROR")) == 2
 
+    def test_keeps_multiple_matching_levels(self):
+        entries = _entries("INFO", "ERROR", "WARN", "FATAL")
+        result = filter_level(entries, ["ERROR", "FATAL"])
+        assert [e.level for e in result] == ["ERROR", "FATAL"]
+
     def test_none_passthrough(self):
         entries = _entries("INFO", "ERROR")
         assert filter_level(entries, None) == entries
@@ -216,3 +221,11 @@ class TestApplyFilters:
         result = apply_filters(entries, level="ERROR", pattern="timeout")
         assert len(result) == 1
         assert "timeout" in result[0].message.lower()
+
+    def test_combined_multi_level_and_pattern(self):
+        line1 = "2024-01-15 08:00:00,000 - app - ERROR - Connection timeout"
+        line2 = "2024-01-15 08:01:00,000 - app - FATAL - Disk full"
+        line3 = "2024-01-15 08:02:00,000 - app - INFO - Connection opened"
+        entries = [parse_line(ln) for ln in [line1, line2, line3]]
+        result = apply_filters(entries, level=["ERROR", "FATAL"], pattern="")
+        assert [e.level for e in result] == ["ERROR", "FATAL"]
