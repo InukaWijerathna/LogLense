@@ -106,6 +106,20 @@ loglense stats logs/app.log --error-threshold 10
 
 The default warning threshold is 5.0%.
 
+10. Hide log entries matching a keyword or regex pattern.
+
+```bash
+loglense parse app.log --exclude healthcheck
+```
+
+You can combine it with `--pattern`:
+
+```bash
+loglense parse app.log --pattern ERROR --exclude healthcheck
+```
+
+This shows ERROR entries while excluding healthcheck-related messages.
+
 ### Commands quick reference
 
 - `parse` — filter and render log entries

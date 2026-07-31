@@ -5,6 +5,7 @@ from datetime import datetime
 
 from loglense.filters import (
     apply_filters,
+    filter_exclude,
     filter_level,
     filter_min_level,
     filter_pattern,
@@ -181,6 +182,37 @@ class TestFilterPattern:
     def test_no_pattern_passthrough(self):
         entries = _entries("INFO", "WARN")
         assert filter_pattern(entries, None) == entries
+
+
+class TestFilterExclude:
+    def test_filter_exclude_removes_matching_entries(self):
+        entries = _entries("INFO", "WARN", "WARN")
+        result = filter_exclude(entries, "INFO")
+        assert len(result) == 2
+        assert all("INFO" not in e.level for e in result)
+
+    def test_no_pattern_passthrough(self):
+        entries = _entries("INFO", "WARN")
+        assert filter_exclude(entries, None) == entries
+
+    def test_pattern_and_exclude_work_together(self):
+        entries = _entries("INFO", "INFO", "WARN")
+        entries[0].raw = "INFO server started"
+        entries[1].raw = "INFO healthcheck"
+        entries[2].raw = "WARN healthcheck"
+        result = apply_filters(
+            entries,
+            pattern="INFO",
+            exclude="healthcheck",
+        )
+        assert len(result) == 1
+        assert result[0].raw == "INFO server started"
+
+    def test_case_insensitive(self):
+        entries = _entries("INFO")
+        entries[0].raw = "TimeOut"
+        result = filter_exclude(entries, "timeout")
+        assert len(result) == 0
 
 
 class TestTimeFilters:
