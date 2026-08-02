@@ -82,6 +82,20 @@ def test_parse_command_outputs_matching_entries(log_file):
     assert "server started" not in result.stdout
 
 
+def test_parse_command_outputs_multiple_matching_levels(full_level_log):
+    result = runner.invoke(
+        app,
+        ["parse", str(full_level_log), "--level", "ERROR", "--level", "FATAL"],
+    )
+
+    assert result.exit_code == 0
+    assert "error msg" in result.stdout
+    assert "fatal msg" in result.stdout
+    assert "debug msg" not in result.stdout
+    assert "info msg" not in result.stdout
+    assert "warn msg" not in result.stdout
+
+
 def test_parse_command_missing_file_exits_nonzero(tmp_path):
     result = runner.invoke(app, ["parse", str(tmp_path / "missing.log")])
     assert result.exit_code != 0

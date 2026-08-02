@@ -63,13 +63,14 @@ loglense watch sample_logs/app.log --level ERROR
 loglense parse app.log worker.log --level ERROR --export errors.json
 ```
 
-4. Filter for an exact log level:
+4. Filter for one or more exact log levels:
 
 ```bash
 loglense parse sample_logs/app.log --level ERROR
+loglense parse sample_logs/app.log --level ERROR --level FATAL
 ```
 
-Returns only `ERROR` entries.
+The first form returns only `ERROR` entries. The second returns entries at either `ERROR` or `FATAL`.
 
 5. Filter by minimum severity threshold:
 

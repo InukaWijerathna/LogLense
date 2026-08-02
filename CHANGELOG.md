@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Clarified CLI help text to distinguish `--level` (exact match) from `--min-level` (severity threshold).
+- Extended `--level` to accept repeated values so multiple exact log levels can be matched in one run.
 
 ## [0.5.0] - 2026-07-24
 
