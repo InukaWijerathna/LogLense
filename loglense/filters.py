@@ -73,7 +73,7 @@ def apply_filters(
 ) -> List[LogEntry]:
     entries = filter_level(entries, level)
     if not level:
-        entries = filter_min_level(entries , min_level)
+        entries = filter_min_level(entries, min_level)
     entries = filter_pattern(entries, pattern)
     entries = filter_exclude(entries, exclude)
     entries = filter_since(entries, since)
