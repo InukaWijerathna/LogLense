@@ -46,6 +46,13 @@ def filter_pattern(entries: List[LogEntry], pattern: Optional[str]) -> List[LogE
     return [e for e in entries if regex.search(e.raw)]
 
 
+def filter_exclude(entries: List[LogEntry], pattern: Optional[str]) -> List[LogEntry]:
+    if not pattern:
+        return entries
+    regex = compile_pattern(pattern)
+    return [e for e in entries if not regex.search(e.raw)]
+
+
 def filter_since(entries: List[LogEntry], since: Optional[datetime]) -> List[LogEntry]:
     if not since:
         return entries
@@ -65,11 +72,13 @@ def apply_filters(
     pattern: Optional[str] = None,
     since: Optional[datetime] = None,
     until: Optional[datetime] = None,
+    exclude: Optional[str] = None,
 ) -> List[LogEntry]:
     entries = filter_level(entries, level)
     if not level:
-        entries = filter_min_level(entries , min_level)
+        entries = filter_min_level(entries, min_level)
     entries = filter_pattern(entries, pattern)
+    entries = filter_exclude(entries, exclude)
     entries = filter_since(entries, since)
     entries = filter_until(entries, until)
     return entries

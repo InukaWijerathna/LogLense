@@ -179,7 +179,8 @@ def parse(
         "--min-level",
         "-m",
         help="Show entries at or above this severity level (DEBUG, INFO, WARN, ERROR, FATAL). Ignored when --level is set.",
-    )
+    ),
+    exclude: Optional[str] = typer.Option(None, "--exclude", "-x", help="Exclude entries matching a regex or keyword pattern")
 ) -> None:
     """Parse and filter one or more log files."""
     _ensure_files_exist(logfiles)
@@ -192,7 +193,15 @@ def parse(
     for lf in logfiles:
         all_entries.extend(parse_file(str(lf)))
 
-    entries = apply_filters(all_entries, level=level, min_level=min_level, pattern=pattern, since=since_dt, until=until_dt)
+    entries = apply_filters(
+        all_entries,
+        level=level,
+        min_level=min_level,
+        pattern=pattern,
+        since=since_dt,
+        until=until_dt,
+        exclude=exclude,
+    )
 
     _display_entries(entries, regex=regex)
 
@@ -213,7 +222,8 @@ def watch(
         "--min-level",
         "-m",
         help="Show entries at or above this severity level (DEBUG, INFO, WARN, ERROR, FATAL). Ignored when --level is set.",
-    )
+    ),
+    exclude: Optional[str] = typer.Option(None, "--exclude", "-x", help="Exclude entries matching a regex or keyword pattern")
 ) -> None:
     """Watch a live log file and stream new entries (like tail -f, but smarter)."""
     console.print(
@@ -225,7 +235,13 @@ def watch(
 
     def on_line(raw: str) -> None:
         entry = parse_line(raw)
-        matched = apply_filters([entry], level=level, min_level=min_level, pattern=pattern)
+        matched = apply_filters(
+            [entry],
+            level=level,
+            min_level=min_level,
+            pattern=pattern,
+            exclude=exclude,
+        )
         if not matched:
             return
 
