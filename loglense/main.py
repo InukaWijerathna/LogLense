@@ -192,8 +192,15 @@ def parse(
     for lf in logfiles:
         all_entries.extend(parse_file(str(lf)))
 
-    entries = apply_filters(all_entries, level=level, min_level=min_level, pattern=pattern, since=since_dt, until=until_dt, 
-                            exclude=exclude)
+    entries = apply_filters(
+        all_entries,
+        level=level,
+        min_level=min_level,
+        pattern=pattern,
+        since=since_dt,
+        until=until_dt,
+        exclude=exclude,
+    )
 
     _display_entries(entries, regex=regex)
 
