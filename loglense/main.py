@@ -223,7 +223,12 @@ def watch(
         "-m",
         help="Show entries at or above this severity level (DEBUG, INFO, WARN, ERROR, FATAL). Ignored when --level is set.",
     ),
-    exclude: Optional[str] = typer.Option(None, "--exclude", "-x", help="Exclude entries matching a regex or keyword pattern")
+    exclude: Optional[str] = typer.Option(None, "--exclude", "-x", help="Exclude entries matching a regex or keyword pattern"),
+    from_start: bool = typer.Option(
+        False,
+        "--from-start",
+        help="Stream the entire file before watching for new lines",
+    )
 ) -> None:
     """Watch a live log file and stream new entries (like tail -f, but smarter)."""
     console.print(
@@ -258,7 +263,7 @@ def watch(
         line_text.append_text(msg)
         console.print(line_text)
 
-    watch_file(str(logfile), on_line, tail_lines=lines)
+    watch_file(str(logfile), on_line, tail_lines=lines, from_start=from_start)
 
 
 @app.command()

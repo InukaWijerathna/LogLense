@@ -39,13 +39,14 @@ class _LogFileHandler(FileSystemEventHandler):
             print(f"loglense: warning: could not read {self._filepath}: {exc}", file=sys.stderr)
 
 
-def watch_file(filepath: str, callback: Callable[[str], None], tail_lines: int = 10) -> None:
+def watch_file(filepath: str, callback: Callable[[str], None], tail_lines: int = 10, from_start: bool = False) -> None:
     """Stream new lines from *filepath* to *callback* until KeyboardInterrupt."""
     # Print the last tail_lines of existing content first
     try:
         with open(filepath, "r", encoding="utf-8", errors="replace") as fh:
             existing = [ln.rstrip("\n") for ln in fh if ln.strip()]
-        for line in existing[-tail_lines:]:
+        initial_lines = existing if from_start else existing[-tail_lines:]
+        for line in initial_lines:
             callback(line)
     except OSError as exc:
         print(f"loglense: warning: could not read initial content of {filepath}: {exc}", file=sys.stderr)
