@@ -57,13 +57,21 @@ loglense parse sample_logs/app.log
 loglense watch sample_logs/app.log --level ERROR
 ```
 
-3. Aggregate and export errors to JSON:
+3. Stream the entire existing log before following new entries
+
+```bash
+loglense watch app.log --from-start
+```
+
+`--lines` (`-n`) is ignored when `--from-start` is specified.
+
+4. Aggregate and export errors to JSON:
 
 ```bash
 loglense parse app.log worker.log --level ERROR --export errors.json
 ```
 
-4. Filter for one or more exact log levels:
+5. Filter for one or more exact log levels:
 
 ```bash
 loglense parse sample_logs/app.log --level ERROR
@@ -72,7 +80,7 @@ loglense parse sample_logs/app.log --level ERROR --level FATAL
 
 The first form returns only `ERROR` entries. The second returns entries at either `ERROR` or `FATAL`.
 
-5. Filter by minimum severity threshold:
+6. Filter by minimum severity threshold:
 
 ```bash
 loglense parse sample_logs/app.log --min-level WARN
@@ -80,26 +88,26 @@ loglense parse sample_logs/app.log --min-level WARN
 
 Returns `WARN`, `ERROR`, and `FATAL` entries.
 
-6. Both options can be combined:
+7. Both options can be combined:
 
 ```bash
 loglense parse sample_logs/app.log --level ERROR --min-level WARN
 ```
 In this case, only `ERROR` entries are returned because `--level` takes precedence (when `--level` is set, `--min-level` is ignored).
 
-7. Export results as a Markdown table:
+8. Export results as a Markdown table:
 
 ```bash
 loglense parse app.log --export report.md
 ```
 
-8. Display summary statistics and log level distribution.
+9. Display summary statistics and log level distribution.
 
 ```bash
 loglense stats logs/app.log
 ```
 
-9. Warn when the percentage of ERROR/FATAL entries exceeds a threshold:
+10. Warn when the percentage of ERROR/FATAL entries exceeds a threshold:
 
 ```bash
 loglense stats logs/app.log --error-threshold 10
@@ -107,7 +115,7 @@ loglense stats logs/app.log --error-threshold 10
 
 The default warning threshold is 5.0%.
 
-10. Hide log entries matching a keyword or regex pattern.
+11. Hide log entries matching a keyword or regex pattern.
 
 ```bash
 loglense parse app.log --exclude healthcheck
