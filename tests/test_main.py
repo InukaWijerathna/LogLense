@@ -239,11 +239,21 @@ def test_parse_command_tail_with_level_filter(full_level_log):
 
 def test_parse_command_tail_exports_only_last_entries(tmp_path, full_level_log):
     export_path = tmp_path / "out.json"
-    result = runner.invoke(app, ["parse", str(full_level_log),"--tail", "2", "--export", str(export_path)])
+    result = runner.invoke(
+        app,
+        [
+            "parse",
+            str(full_level_log),
+            "--tail", 
+            "2", 
+            "--export", 
+            str(export_path)
+        ],
+    )
     assert result.exit_code == 0
     data = json.loads(export_path.read_text(encoding="utf-8"))
-    assert result.exit_code == 0
     assert len(data) == 2
+    assert [e["message"] for e in data] == ["error msg", "fatal msg"]
     assert "error msg" in result.stdout
     assert "fatal msg" in result.stdout
 

@@ -206,7 +206,9 @@ def parse(
 
     total_entries = len(entries)
 
-    if tail:
+    if tail is not None:
+        if tail <= 0:
+            raise typer.BadParameter("--tail must be a positive integer")
         entries = entries[-tail:]
         console.print(f"\n[green]Showing last {len(entries)} of {total_entries} matched entries[/green]")
 
