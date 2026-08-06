@@ -194,3 +194,75 @@ def test_level_takes_precedence_over_min_level(full_level_log):
     assert "warn msg" not in result.stdout
     assert "error msg" not in result.stdout
     assert "fatal msg" not in result.stdout
+
+
+def test_parse_command_tail_shows_last_n_entries(full_level_log):
+    result = runner.invoke(
+        app,
+        [
+            "parse",
+            str(full_level_log),
+            "--tail",
+            "2",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert "error msg" in result.stdout
+    assert "fatal msg" in result.stdout
+    assert "debug msg" not in result.stdout
+    assert "info msg" not in result.stdout
+    assert "warn msg" not in result.stdout
+    assert "Showing last 2 of 5 matched entries" in result.stdout
+
+
+def test_parse_command_tail_with_level_filter(full_level_log):
+    result = runner.invoke(
+        app,
+        [
+            "parse",
+            str(full_level_log),
+            "--level",
+            "ERROR",
+            "--level",
+            "FATAL",
+            "--tail",
+            "1"
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert "error msg" not in result.stdout
+    assert "fatal msg" in result.stdout
+    assert "Showing last 1 of 2 matched entries" in result.stdout
+
+
+def test_parse_command_tail_exports_only_last_entries(tmp_path, full_level_log):
+    export_path = tmp_path / "out.json"
+    result = runner.invoke(app, ["parse", str(full_level_log),"--tail", "2", "--export", str(export_path)])
+    assert result.exit_code == 0
+    data = json.loads(export_path.read_text(encoding="utf-8"))
+    assert result.exit_code == 0
+    assert len(data) == 2
+    assert "error msg" in result.stdout
+    assert "fatal msg" in result.stdout
+
+
+def test_parse_command_tail_larger_than_matches(full_level_log):
+    result = runner.invoke(
+        app,
+        [
+            "parse",
+            str(full_level_log),
+            "--tail",
+            "20"
+        ],
+    )
+    
+    assert result.exit_code == 0
+    assert "error msg" in result.stdout
+    assert "info msg" in result.stdout
+    assert "debug msg" in result.stdout
+    assert "warn msg" in result.stdout
+    assert "fatal msg" in result.stdout
+    assert "Showing last 5 of 5 matched entries" in result.stdout
