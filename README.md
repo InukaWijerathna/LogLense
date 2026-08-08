@@ -129,6 +129,20 @@ loglense parse app.log --pattern ERROR --exclude healthcheck
 
 This shows ERROR entries while excluding healthcheck-related messages.
 
+12. Show only the last 20 matched log entries
+
+```bash
+loglense parse app.log --tail 20
+```
+
+`--tail` can be combined with other filtering options such as `--level`, `--pattern`, `--since`, `--until`, and `--export`.
+
+13. Export only the last 5 matched entries
+
+```bash
+loglense parse app.log --pattern timeout --tail 5 --export recent.json
+```
+
 ### Commands quick reference
 
 - `parse` — filter and render log entries

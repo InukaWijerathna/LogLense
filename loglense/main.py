@@ -180,7 +180,8 @@ def parse(
         "-m",
         help="Show entries at or above this severity level (DEBUG, INFO, WARN, ERROR, FATAL). Ignored when --level is set.",
     ),
-    exclude: Optional[str] = typer.Option(None, "--exclude", "-x", help="Exclude entries matching a regex or keyword pattern")
+    exclude: Optional[str] = typer.Option(None, "--exclude", "-x", help="Exclude entries matching a regex or keyword pattern"),
+    tail: Optional[int] = typer.Option(None, "--tail", "-n", help="Show only the last N matched entries")
 ) -> None:
     """Parse and filter one or more log files."""
     _ensure_files_exist(logfiles)
@@ -202,6 +203,14 @@ def parse(
         until=until_dt,
         exclude=exclude,
     )
+
+    total_entries = len(entries)
+
+    if tail is not None:
+        if tail <= 0:
+            raise typer.BadParameter("--tail must be a positive integer")
+        entries = entries[-tail:]
+        console.print(f"\n[green]Showing last {len(entries)} of {total_entries} matched entries[/green]")
 
     _display_entries(entries, regex=regex)
 

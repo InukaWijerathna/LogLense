@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `--exclude` (`-x`) filter to omit log entries matching a regex or keyword pattern.
 - `--exclude` can be combined with `--pattern` for more precise log filtering.
 - Added `--from-start` option to the `watch` command to stream the entire existing log before following new log entries.
+- Added `--tail` (`-n`) option to the `parse` command to display or export only the last **N** matched log entries after filtering.
 
 ### Changed
 - Clarified CLI help text to distinguish `--level` (exact match) from `--min-level` (severity threshold).
