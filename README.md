@@ -143,6 +143,20 @@ loglense parse app.log --tail 20
 loglense parse app.log --pattern timeout --tail 5 --export recent.json
 ```
 
+14. Disable colored output
+
+LogLense supports disabling Rich's colored output for terminals or scripts that don't support ANSI colors.
+
+```bash
+loglense --no-color parse app.log
+```
+
+LogLense also respects the standard `NO_COLOR` environment variable.
+
+```bash
+NO_COLOR=1 loglense parse app.log
+```
+
 ### Commands quick reference
 
 - `parse` — filter and render log entries
