@@ -318,4 +318,3 @@ def test_no_color_environment_variable(full_level_log, monkeypatch):
 
     assert result.exit_code == 0
     assert "\x1b[" not in result.output
-
