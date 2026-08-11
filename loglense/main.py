@@ -192,10 +192,9 @@ def parse(
         help="Disable colored output.",
     )
 ) -> None:
-    """Parse and filter one or more log files."""
-    global console
-    disable_colors = no_color or "NO_COLOR" in os.environ
-    console = Console(legacy_windows=False, no_color=disable_colors)
+    if no_color or "NO_COLOR" in os.environ:
+        global console
+        console = Console(legacy_windows=False, no_color=True)
     _ensure_files_exist(logfiles)
 
     since_dt = _parse_dt(since)
