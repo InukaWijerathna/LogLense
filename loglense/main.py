@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import re
 import sys
 from collections import Counter
@@ -153,7 +154,10 @@ def _display_entries(entries: list[LogEntry], regex: Optional[re.Pattern] = None
 # ---------------------------------------------------------------------------
 
 @app.callback(invoke_without_command=True)
-def _callback(ctx: typer.Context) -> None:
+def _callback(ctx: typer.Context, no_color: bool = typer.Option(False, "--no-color", help="Disable colored output.")) -> None:
+    global console
+    disable_colors = no_color or "NO_COLOR" in os.environ
+    console = Console(legacy_windows=False, no_color=disable_colors)
     _print_banner()
     if ctx.invoked_subcommand is None:
         console.print(ctx.get_help())
@@ -181,9 +185,16 @@ def parse(
         help="Show entries at or above this severity level (DEBUG, INFO, WARN, ERROR, FATAL). Ignored when --level is set.",
     ),
     exclude: Optional[str] = typer.Option(None, "--exclude", "-x", help="Exclude entries matching a regex or keyword pattern"),
-    tail: Optional[int] = typer.Option(None, "--tail", "-n", help="Show only the last N matched entries")
+    tail: Optional[int] = typer.Option(None, "--tail", "-n", help="Show only the last N matched entries"),
+    no_color: bool = typer.Option(
+        False,
+        "--no-color",
+        help="Disable colored output.",
+    )
 ) -> None:
-    """Parse and filter one or more log files."""
+    if no_color or "NO_COLOR" in os.environ:
+        global console
+        console = Console(legacy_windows=False, no_color=True)
     _ensure_files_exist(logfiles)
 
     since_dt = _parse_dt(since)
@@ -237,9 +248,17 @@ def watch(
         False,
         "--from-start",
         help="Stream the entire file before watching for new lines",
-    )
+    ),
+    no_color: bool = typer.Option(
+        False,
+        "--no-color",
+        help="Disable colored output.",
+    ),
 ) -> None:
     """Watch a live log file and stream new entries (like tail -f, but smarter)."""
+    global console
+    disable_colors = no_color or "NO_COLOR" in os.environ
+    console = Console(legacy_windows=False, no_color=disable_colors)
     console.print(
         f"[bold]Watching[/bold] [cyan]{logfile}[/cyan] "
         f"[dim]— Ctrl+C to stop[/dim]\n"
@@ -279,9 +298,17 @@ def watch(
 def stats(
     logfiles: List[Path] = typer.Argument(..., help="One or more log files to summarize"),
     pattern: Optional[str] = typer.Option(None, "--pattern", "-p", help="Scope stats to entries matching this pattern"),
-    error_threshold: float = typer.Option(5.0, "--error-threshold", help="Warning threshold for ERROR/FATAL percentage")
+    error_threshold: float = typer.Option(5.0, "--error-threshold", help="Warning threshold for ERROR/FATAL percentage"),
+    no_color: bool = typer.Option(
+        False,
+        "--no-color",
+        help="Disable colored output.",
+    ),
 ) -> None:
     """Show a summary of log levels, time range, and top message patterns."""
+    global console
+    disable_colors = no_color or "NO_COLOR" in os.environ
+    console = Console(legacy_windows=False, no_color=disable_colors)
     _ensure_files_exist(logfiles)
 
     all_entries: list[LogEntry] = []

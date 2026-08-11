@@ -244,9 +244,9 @@ def test_parse_command_tail_exports_only_last_entries(tmp_path, full_level_log):
         [
             "parse",
             str(full_level_log),
-            "--tail", 
-            "2", 
-            "--export", 
+            "--tail",
+            "2",
+            "--export",
             str(export_path)
         ],
     )
@@ -276,3 +276,45 @@ def test_parse_command_tail_larger_than_matches(full_level_log):
     assert "warn msg" in result.stdout
     assert "fatal msg" in result.stdout
     assert "Showing last 5 of 5 matched entries" in result.stdout
+
+
+def test_parser_no_color(full_level_log):
+    result = runner.invoke(
+        app,
+        [
+            "parse",
+            str(full_level_log),
+            "--no-color"
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert "\x1b[" not in result.output
+
+
+def test_stats_no_color(full_level_log):
+    result = runner.invoke(
+        app,
+        [
+            "stats",
+            str(full_level_log),
+            "--no-color"
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert "\x1b[" not in result.output
+
+
+def test_no_color_environment_variable(full_level_log, monkeypatch):
+    monkeypatch.setenv("NO_COLOR", "1")
+    result = runner.invoke(
+        app,
+        [
+            "parse",
+            str(full_level_log)
+        ]
+    )
+
+    assert result.exit_code == 0
+    assert "\x1b[" not in result.output
