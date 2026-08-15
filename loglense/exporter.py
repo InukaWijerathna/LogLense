@@ -7,6 +7,16 @@ from typing import List
 from .parser import LogEntry
 
 
+def entry_to_dict(entry: LogEntry) -> dict:
+    return {
+        "timestamp": entry.timestamp.isoformat() if entry.timestamp else None,
+        "level": entry.level,
+        "source": entry.source,
+        "message": entry.message,
+        "file": entry.filepath,
+    }
+
+
 def export_txt(entries: List[LogEntry], path: str) -> None:
     with open(path, "w", encoding="utf-8") as fh:
         for entry in entries:
@@ -28,16 +38,8 @@ def export_csv(entries: List[LogEntry], path: str) -> None:
 
 
 def export_json(entries: List[LogEntry], path: str) -> None:
-    data = [
-        {
-            "timestamp": e.timestamp.isoformat() if e.timestamp else None,
-            "level": e.level,
-            "source": e.source,
-            "message": e.message,
-            "file": e.filepath,
-        }
-        for e in entries
-    ]
+    data = [entry_to_dict(e) for e in entries]
+
     with open(path, "w", encoding="utf-8") as fh:
         json.dump(data, fh, indent=2, ensure_ascii=False)
 

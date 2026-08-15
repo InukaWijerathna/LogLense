@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 import re
 import sys
@@ -23,7 +24,7 @@ from rich.table import Table
 from rich.text import Text
 
 from . import __version__
-from .exporter import export
+from .exporter import entry_to_dict, export
 from .filters import apply_filters, compile_pattern, filter_pattern
 from .parser import LogEntry, parse_file, parse_line
 from .watcher import watch_file
@@ -149,16 +150,26 @@ def _display_entries(entries: list[LogEntry], regex: Optional[re.Pattern] = None
     console.print(f"\n[dim]{len(entries)} entr{'y' if len(entries) == 1 else 'ies'} matched[/dim]")
 
 
+def _print_jsonl(entries: list[LogEntry]) -> None:
+    for entry in entries:
+        print(json.dumps(entry_to_dict(entry), ensure_ascii=False))
+
+
 # ---------------------------------------------------------------------------
 # Banner callback — runs before every subcommand
 # ---------------------------------------------------------------------------
+
+def _quiet_requested() -> bool:
+    return "--quiet" in sys.argv or "-q" in sys.argv
+
 
 @app.callback(invoke_without_command=True)
 def _callback(ctx: typer.Context, no_color: bool = typer.Option(False, "--no-color", help="Disable colored output.")) -> None:
     global console
     disable_colors = no_color or "NO_COLOR" in os.environ
     console = Console(legacy_windows=False, no_color=disable_colors)
-    _print_banner()
+    if not _quiet_requested():
+        _print_banner()
     if ctx.invoked_subcommand is None:
         console.print(ctx.get_help())
         raise typer.Exit()
@@ -190,7 +201,13 @@ def parse(
         False,
         "--no-color",
         help="Disable colored output.",
-    )
+    ),
+    quiet: bool = typer.Option(
+        False,
+        "--quiet",
+        "-q",
+        help="Print JSONL output without the banner or table.",
+    ),
 ) -> None:
     if no_color or "NO_COLOR" in os.environ:
         global console
@@ -221,13 +238,19 @@ def parse(
         if tail <= 0:
             raise typer.BadParameter("--tail must be a positive integer")
         entries = entries[-tail:]
-        console.print(f"\n[green]Showing last {len(entries)} of {total_entries} matched entries[/green]")
 
-    _display_entries(entries, regex=regex)
+        if not quiet:
+            console.print(f"\n[green]Showing last {len(entries)} of {total_entries} matched entries[/green]")
+
+    if quiet:
+        _print_jsonl(entries)
+    else:
+        _display_entries(entries, regex=regex)
 
     if export_path:
         export(entries, str(export_path))
-        console.print(f"\n[green]Exported {len(entries)} entries → {export_path}[/green]")
+        if not quiet:
+            console.print(f"\n[green]Exported {len(entries)} entries → {export_path}[/green]")
 
 
 @app.command()
