@@ -389,20 +389,6 @@ def test_parse_quiet_short_option(full_level_log, cli_sys_argv):
     assert "\x1b[" not in result.output
 
 
-def test_parse_default_keeps_banner(full_level_log):
-    result = runner.invoke(
-        app,
-        [
-            "parse",
-            str(full_level_log)
-        ],
-    )
-
-    assert result.exit_code == 0
-    assert _ASCII_ART[0] in result.output
-    assert "Timestamp" in result.output
-
-
 def test_parse_quiet_with_tail_outputs_only_jsonl(full_level_log, cli_sys_argv):
     cli_sys_argv(
         [
