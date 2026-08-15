@@ -467,3 +467,4 @@ def test_parse_quiet_jsonl_contains_expected_fields(full_level_log, cli_sys_argv
 
     assert first_entry["level"] == "DEBUG"
     assert first_entry["message"] == "debug msg"
+
