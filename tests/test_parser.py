@@ -55,6 +55,24 @@ class TestParseLine:
         assert e.level == "ERROR"
         assert e.message == "disk full"
 
+    def test_syslog_format(self):
+        year = datetime.now().year
+        line = "Jan 15 08:23:45 myhost sshd[1234]: Failed password for invalid user admin"
+        e = parse_line(line)
+        assert e.timestamp == datetime(year, 1, 15, 8, 23, 45)
+        assert e.level is None
+        assert e.source == "sshd"
+        assert e.message == "Failed password for invalid user admin"
+
+    def test_syslog_format_cron_without_level(self):
+        year = datetime.now().year
+        line = "Feb  3 04:05:06 localhost CRON[9876]: (root) CMD (run-parts /etc/cron.hourly)"
+        e = parse_line(line)
+        assert e.timestamp == datetime(year, 2, 3, 4, 5, 6)
+        assert e.level is None
+        assert e.source == "CRON"
+        assert e.message == "(root) CMD (run-parts /etc/cron.hourly)"
+
     def test_unparsed_line(self):
         line = "some random text without structure"
         e = parse_line(line)
@@ -115,6 +133,46 @@ class TestParseLine:
         assert parsed.level is None
         assert parsed.source is None
         assert parsed.message == "just message"
+
+    def test_regression_existing_formats_do_not_change(self):
+        cases = [
+            (
+                "2024-01-15 08:10:15,448 - app.db - ERROR - Connection timeout",
+                datetime(2024, 1, 15, 8, 10, 15, 448000),
+                "ERROR",
+                "app.db",
+                "Connection timeout",
+            ),
+            (
+                "2024/01/15 08:10:00 [error] 1234#0: connection refused",
+                datetime(2024, 1, 15, 8, 10, 0),
+                "ERROR",
+                None,
+                "connection refused",
+            ),
+            (
+                '127.0.0.1 - frank [15/Jan/2024:08:00:01 +0000] "GET /index.html HTTP/1.1" 200 1234',
+                datetime(2024, 1, 15, 8, 0, 1),
+                "INFO",
+                "127.0.0.1",
+                "GET /index.html HTTP/1.1 → 200 (1234 bytes)",
+            ),
+            (
+                "[2024-01-15 08:23:45] WARN: service slow",
+                datetime(2024, 1, 15, 8, 23, 45),
+                "WARN",
+                None,
+                "service slow",
+            ),
+            ("ERROR: disk full", None, "ERROR", None, "disk full"),
+        ]
+
+        for line, timestamp, level, source, message in cases:
+            parsed = parse_line(line)
+            assert parsed.timestamp == timestamp
+            assert parsed.level == level
+            assert parsed.source == source
+            assert parsed.message == message
 
 
 # ---------------------------------------------------------------------------

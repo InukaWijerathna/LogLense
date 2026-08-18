@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `source`, `logger`, `src`
   - `timestamp`, `time`, `ts`
 - Added support for additional ISO-8601 timestamp formats commonly used in JSON logs.
+- Added support for syslog-formatted lines (`Mon D HH:MM:SS host process[pid]: message`) with current-year timestamp inference.
 - Added high error-rate warnings to the `stats` command.
 - Added `--error-threshold` option to customize when ERROR/FATAL warnings are shown.
 - Added `--exclude` (`-x`) filter to omit log entries matching a regex or keyword pattern.
