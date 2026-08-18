@@ -20,7 +20,17 @@ Key goals:
 - ⏱ Time-range slicing with `--since` / `--until`
 - 📂 Aggregate multiple files with automatic `File` column
 - 📤 Export to CSV, JSON, Markdown or plain text
-- ⚙️ Auto-detection for Python logging, Nginx, Apache CLF, JSON logs, and generic formats
+- ⚙️ Auto-detection for Python logging, Nginx, Apache CLF, Syslog, JSON logs, and generic formats
+
+### Supported formats
+
+- Python logging (`YYYY-MM-DD HH:MM:SS,mmm - source - LEVEL - message`)
+- Nginx error logs (`YYYY/MM/DD HH:MM:SS [level] pid#tid: message`)
+- Apache Common Log Format (CLF)
+- Syslog (`Mon D HH:MM:SS host process[pid]: message`) — year is inferred as the current year
+- Bracket format (`[timestamp] LEVEL: message`)
+- Bare level prefix (`ERROR: message`)
+- JSON logs (with common field aliases)
 
 ---
 
@@ -252,4 +262,3 @@ Apache 2.0 — see [LICENSE](LICENSE) for details.
 ---
 
 *Designed for fast, human-friendly log exploration.*
-

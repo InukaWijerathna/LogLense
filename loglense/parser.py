@@ -44,6 +44,12 @@ _PATTERNS = [
         r"[\s:]+(?P<message>.+)$",
         re.IGNORECASE,
     )),
+    # Syslog: Jan 15 08:23:45 myhost sshd[1234]: message
+    ("syslog", re.compile(
+        r"^(?P<timestamp>[A-Z][a-z]{2}\s+\d{1,2}\s+\d{2}:\d{2}:\d{2})"
+        r"\s+(?P<host>\S+)\s+"
+        r"(?P<source>[^\s\[]+)(?:\[\d+\])?:\s+(?P<message>.+)$"
+    )),
     # Bare level prefix: ERROR: message  or  ERROR message
     ("bare_level", re.compile(
         r"^(?P<level>DEBUG|INFO|WARNING|WARN|ERROR|CRITICAL|FATAL)[\s:]+(?P<message>.+)$",
@@ -60,12 +66,14 @@ _TIMESTAMP_FORMATS = [
     "%Y/%m/%d %H:%M:%S",
     "%d/%b/%Y:%H:%M:%S %z",
     "%d/%b/%Y:%H:%M:%S",
+    "%b %d %H:%M:%S",
     "%Y-%m-%dT%H:%M:%S",
     "%Y-%m-%dT%H:%M:%SZ",
     "%Y-%m-%dT%H:%M:%S.%fZ",
     "%Y-%m-%dT%H:%M:%S%z",
     "%Y-%m-%d %H:%M:%SZ"
 ]
+_FORMATS_WITHOUT_YEAR = {"%b %d %H:%M:%S"}
 
 LEVEL_NORMALIZE = {"WARNING": "WARN", "CRITICAL": "FATAL"}
 
@@ -75,6 +83,8 @@ def _parse_timestamp(raw: str) -> Optional[datetime]:
     for fmt in _TIMESTAMP_FORMATS:
         try:
             dt = datetime.strptime(raw, fmt)
+            if fmt in _FORMATS_WITHOUT_YEAR:
+                dt = dt.replace(year=datetime.now().year)
             return dt.replace(tzinfo=None)  # normalize to naive
         except ValueError:
             continue
