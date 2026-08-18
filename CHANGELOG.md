@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `--tail` (`-n`) option to the `parse` command to display or export only the last **N** matched log entries after filtering.
 - Added a global `--no-color` CLI option to disable Rich colored output.
 - Added support for the standard `NO_COLOR` environment variable.
+- Added `parse --quiet` (`-q`) for pipeable JSONL output without the banner or Rich table.
 
 ### Changed
 - Clarified CLI help text to distinguish `--level` (exact match) from `--min-level` (severity threshold).

@@ -3,7 +3,7 @@ import json
 import pytest
 from typer.testing import CliRunner
 
-from loglense.main import _build_regex, _ensure_files_exist, _parse_dt, app
+from loglense.main import _ASCII_ART, _build_regex, _ensure_files_exist, _parse_dt, app
 
 runner = CliRunner()
 
@@ -52,6 +52,17 @@ def low_error_log(tmp_path):
     path = tmp_path / "low_error.log"
     path.write_text(LOW_ERROR_LOG, encoding="utf-8")
     return path
+
+
+@pytest.fixture
+def cli_sys_argv(monkeypatch):
+    def _set_args(args):
+        monkeypatch.setattr(
+            "sys.argv",
+            ["loglense", *args],
+        )
+
+    return _set_args
 
 
 def test_parse_dt_accepts_known_formats():
@@ -318,3 +329,128 @@ def test_no_color_environment_variable(full_level_log, monkeypatch):
 
     assert result.exit_code == 0
     assert "\x1b[" not in result.output
+
+
+def test_parse_quiet_outputs_jsonl(full_level_log, cli_sys_argv):
+    cli_sys_argv(
+        [
+            "parse",
+            str(full_level_log),
+            "--quiet",
+        ]
+    )
+
+    result = runner.invoke(
+        app,
+        [
+            "parse",
+            str(full_level_log),
+            "--quiet",
+        ],
+    )
+
+    assert result.exit_code == 0
+
+    lines = result.stdout.strip().splitlines()
+    objects = [json.loads(line) for line in lines]
+
+    assert _ASCII_ART[0] not in result.output
+    assert len(objects) == 5
+    assert all(isinstance(obj, dict) for obj in objects)
+    assert "\x1b[" not in result.output
+
+
+def test_parse_quiet_short_option(full_level_log, cli_sys_argv):
+    cli_sys_argv(
+        [
+            "parse",
+            str(full_level_log),
+            "-q",
+        ]
+    )
+
+    result = runner.invoke(
+        app,
+        [
+            "parse",
+            str(full_level_log),
+            "-q",
+        ],
+    )
+
+    assert result.exit_code == 0
+
+    lines = result.stdout.strip().splitlines()
+    objects = [json.loads(line) for line in lines]
+
+    assert _ASCII_ART[0] not in result.output
+    assert len(objects) == 5
+    assert all(isinstance(obj, dict) for obj in objects)
+    assert "\x1b[" not in result.output
+
+
+def test_parse_quiet_with_tail_outputs_only_jsonl(full_level_log, cli_sys_argv):
+    cli_sys_argv(
+        [
+            "parse",
+            str(full_level_log),
+            "-q",
+        ]
+    )
+
+    result = runner.invoke(
+        app,
+        [
+            "parse",
+            str(full_level_log),
+            "--quiet",
+            "--tail",
+            "2",
+        ],
+    )
+
+    assert result.exit_code == 0
+
+    lines = result.stdout.strip().splitlines()
+    objects = [json.loads(line) for line in lines]
+
+    assert len(objects) == 2
+    assert [obj["message"] for obj in objects] == ["error msg", "fatal msg"]
+    assert "Showing last" not in result.output
+    assert _ASCII_ART[0] not in result.output
+
+
+def test_parse_quiet_jsonl_contains_expected_fields(full_level_log, cli_sys_argv):
+    cli_sys_argv(
+        [
+            "parse",
+            str(full_level_log),
+            "-q",
+        ]
+    )
+
+    result = runner.invoke(
+        app,
+        [
+            "parse",
+            str(full_level_log),
+            "--quiet",
+        ],
+    )
+
+    assert result.exit_code == 0
+
+    lines = result.stdout.strip().splitlines()
+    first_entry = json.loads(lines[0])
+
+    assert set(first_entry.keys()) == {
+        "timestamp",
+        "level",
+        "source",
+        "message",
+        "file",
+    }
+
+    assert first_entry["level"] == "DEBUG"
+    assert first_entry["message"] == "debug msg"
+

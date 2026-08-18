@@ -157,6 +157,14 @@ LogLense also respects the standard `NO_COLOR` environment variable.
 NO_COLOR=1 loglense parse app.log
 ```
 
+15. Pipeable JSON output
+
+Use `--quiet` (or `-q`) to suppress the banner and Rich table and print matching entries as JSON Lines (JSONL), with one JSON object per line:
+
+```bash
+loglense parse app.log --quiet
+```
+
 ### Commands quick reference
 
 - `parse` — filter and render log entries
